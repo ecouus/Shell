@@ -2,7 +2,7 @@
 #安装weget curl依赖包
 #yum update -y && yum install curl -y #CentOS/Fedora
 #apt-get update -y && apt-get install curl -y #Debian/Ubuntu
-#远程下载代码curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/pswb.sh && sudo chmod +x pswb.sh && ./eco.sh
+#远程下载代码curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/pswb.sh && sudo chmod +x pswb.sh && ./pswb.sh
 
 install_docker() {
     if ! command -v docker &>/dev/null; then
