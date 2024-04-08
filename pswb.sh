@@ -65,7 +65,7 @@ read -p "请输入你的选择：" user_choice
 
 case $user_choice in
     1)
-        DIR="/home/dc/website"
+        DIR="/home/dc/PersonalWeb"
         # 检查目录是否存在
         if [ -d "$DIR" ]; then
             echo "Directory $DIR already exists."
@@ -79,7 +79,7 @@ case $user_choice in
 
         # 定义GitHub仓库zip文件的URL
         ZIP_URL="https://github.com/ecouus/PersonalPage/archive/refs/heads/main.zip"
-        ZIP_FILE="${DIR}/website.zip"
+        ZIP_FILE="${DIR}/PersonalWeb.zip"
 
         # 下载zip文件
         echo "Downloading the zip file from $ZIP_URL..."
@@ -104,8 +104,8 @@ case $user_choice in
         docker run -d \
             -p 8899:80 \
             --name pswb \
-            -v /home/dc/website/nginx/pswb.conf:/etc/nginx/pswb.conf \
-            -v /home/dc/website/:/usr/share/nginx/html \
+            -v /home/dc/PersonalWeb/nginx/pswb.conf:/etc/nginx/pswb.conf \
+            -v /home/dc/PersonalWeb/:/usr/share/nginx/html \
             nginx:alpine
 
         docker exec pswb nginx -t
@@ -116,7 +116,8 @@ case $user_choice in
         ip_address
         echo "个人网页搭建好咯~ "
         echo "http://$ipv4_address:8899"
-        echo "html和nginx路径均为/home/dc/website/"
+        echo " "
+        echo "html和nginx路径均为/home/dc/PersonalWeb/"
         echo "自行更改html文件及nginx配置文件哦~"
         echo " "
         ;;
@@ -124,7 +125,8 @@ case $user_choice in
         echo "停止并删除pswb容器..."
         docker stop pswb
         docker rm pswb
-                DIR="/home/dc/website"
+        rm -rf /home/dc/PersonalWeb
+                DIR="/home/dc/PersonalWeb"
         # 检查目录是否存在
         if [ -d "$DIR" ]; then
             echo "Directory $DIR already exists."
@@ -138,7 +140,7 @@ case $user_choice in
 
         # 定义GitHub仓库zip文件的URL
         ZIP_URL="https://github.com/ecouus/PersonalPage/archive/refs/heads/main.zip"
-        ZIP_FILE="${DIR}/website.zip"
+        ZIP_FILE="${DIR}/PersonalWeb.zip"
 
         # 下载zip文件
         echo "Downloading the zip file from $ZIP_URL..."
@@ -163,8 +165,8 @@ case $user_choice in
         docker run -d \
             -p 8899:80 \
             --name pswb \
-            -v /home/dc/website/nginx/pswb.conf:/etc/nginx/pswb.conf \
-            -v /home/dc/website/:/usr/share/nginx/html \
+            -v /home/dc/PersonalWeb/nginx/pswb.conf:/etc/nginx/pswb.conf \
+            -v /home/dc/PersonalWeb/:/usr/share/nginx/html \
             nginx:alpine
 
         docker exec pswb nginx -t
@@ -175,7 +177,8 @@ case $user_choice in
         ip_address
         echo "个人网页搭建好咯~ "
         echo "http://$ipv4_address:8899"
-        echo "html和nginx路径均为/home/dc/website/"
+        echo " "
+        echo "html和nginx路径均为/home/dc/PersonalWeb/"
         echo "自行更改html文件及nginx配置文件哦~"
         echo " "
         ;;
@@ -183,6 +186,7 @@ case $user_choice in
         echo "停止并删除pswb容器..."
         docker stop pswb
         docker rm pswb
+        rm -rf /home/dc/PersonalWeb
         ;;
     *)
         echo "继续执行脚本..."
@@ -190,7 +194,7 @@ case $user_choice in
 esac
 
 
-echo "脚本运行完毕 拜拜( ^_^ )/~~"
+echo "脚本运行完毕"
 # 提示用户按任意键继续
 read -n 1 -s -r -p "按任意键退出"
 echo ""
