@@ -4,6 +4,14 @@
 #apt-get update -y && apt-get install curl -y #Debian/Ubuntu
 #远程下载代码curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/pswb.sh && sudo chmod +x pswb.sh && ./pswb.sh
 
+
+ip_address() {
+ipv4_address=$(curl -s ipv4.ip.sb)
+ipv6_address=$(curl -s --max-time 1 ipv6.ip.sb)
+}
+
+
+
 install_docker() {
     if ! command -v docker &>/dev/null; then
         if [ -f "/etc/alpine-release" ]; then
@@ -27,55 +35,155 @@ install_docker() {
 sudo apt install wget unzip -y
 install_docker
 
-DIR="/home/dc/website"
-# Check if the directory exists
-if [ -d "$DIR" ]; then
-    echo "Directory $DIR already exists."
-else
-    echo "Creating directory $DIR."
-    mkdir -p "$DIR"
-fi
+# 用户选择
+clear
+echo -e "\033[38;5;208m  ___  ___  __\033[0m"
+echo -e "\033[38;5;208m |___ |    |  | \033[0m"
+echo -e "\033[38;5;208m |___ |___ |__| \033[0m"
+echo -e "\033[38;5;208m 脚本作者：Rantional \033[0m"
+echo -e "\033[38;5;208m 博客：https://ecouu.com \033[0m"
+echo " "
+echo "个人主页搭建"
+echo "源码：https://github.com/DoWake/PersonalPage"
+echo "------------------------"
+echo "菜单栏："
+echo "------------------------"
+echo "1.安装项目     2.更新项目（删除并重新部署）     3.删除项目"
+read -p "请输入你的选择：" user_choice
 
-# Navigate to the directory
-cd "$DIR"
+case $user_choice in
+    1)
+        DIR="/home/dc/website"
+        # 检查目录是否存在
+        if [ -d "$DIR" ]; then
+            echo "Directory $DIR already exists."
+        else
+            echo "Creating directory $DIR."
+            mkdir -p "$DIR"
+        fi
 
-# Define the URL of the GitHub repository zip file
-ZIP_URL="https://github.com/ecouus/PersonalPage/archive/refs/heads/main.zip"
-ZIP_FILE="${DIR}/website.zip"
+        # 导航到目录
+        cd "$DIR"
 
-# Download the zip file
-echo "Downloading the zip file from $ZIP_URL..."
-wget -O "$ZIP_FILE" "$ZIP_URL"
+        # 定义GitHub仓库zip文件的URL
+        ZIP_URL="https://github.com/ecouus/PersonalPage/archive/refs/heads/main.zip"
+        ZIP_FILE="${DIR}/website.zip"
 
-# Unzip the contents of the zip file
-echo "Unzipping the file..."
-unzip -o "$ZIP_FILE" -d "$DIR"
+        # 下载zip文件
+        echo "Downloading the zip file from $ZIP_URL..."
+        wget -O "$ZIP_FILE" "$ZIP_URL"
 
-EXTRACTED_DIR="${DIR}/PersonalPage-main"
-if [ -d "$EXTRACTED_DIR" ]; then
-    mv -v "$EXTRACTED_DIR"/* "$DIR/"
-    rmdir "$EXTRACTED_DIR"
-fi
+        # 解压zip文件
+        echo "Unzipping the file..."
+        unzip -o "$ZIP_FILE" -d "$DIR"
 
-# Remove the zip file
-echo "Removing the zip file..."
-rm -f "$ZIP_FILE"
-echo "Setup completed."
+        EXTRACTED_DIR="${DIR}/PersonalPage-main"
+        if [ -d "$EXTRACTED_DIR" ]; then
+            mv -v "$EXTRACTED_DIR"/* "$DIR/"
+            rmdir "$EXTRACTED_DIR"
+        fi
+
+        # 删除zip文件
+        echo "Removing the zip file..."
+        rm -f "$ZIP_FILE"
+        echo "Setup completed."
+
+        # 运行Docker容器
+        docker run -d \
+            -p 8899:80 \
+            --name pswb \
+            -v /home/dc/website/nginx/pswb.conf:/etc/nginx/pswb.conf \
+            -v /home/dc/website/:/usr/share/nginx/html \
+            nginx:alpine
+
+        docker exec pswb nginx -t
+        docker exec pswb nginx -s reload
+
+        clear
+
+        ip_address
+        echo "个人网页搭建好咯~ "
+        echo "http://$ipv4_address:8899"
+        echo "html和nginx路径均为/home/dc/website/"
+        echo "自行更改html文件及nginx配置文件哦~"
+        echo " "
+        ;;
+    2)
+        echo "停止并删除pswb容器..."
+        docker stop pswb
+        docker rm pswb
+                DIR="/home/dc/website"
+        # 检查目录是否存在
+        if [ -d "$DIR" ]; then
+            echo "Directory $DIR already exists."
+        else
+            echo "Creating directory $DIR."
+            mkdir -p "$DIR"
+        fi
+
+        # 导航到目录
+        cd "$DIR"
+
+        # 定义GitHub仓库zip文件的URL
+        ZIP_URL="https://github.com/ecouus/PersonalPage/archive/refs/heads/main.zip"
+        ZIP_FILE="${DIR}/website.zip"
+
+        # 下载zip文件
+        echo "Downloading the zip file from $ZIP_URL..."
+        wget -O "$ZIP_FILE" "$ZIP_URL"
+
+        # 解压zip文件
+        echo "Unzipping the file..."
+        unzip -o "$ZIP_FILE" -d "$DIR"
+
+        EXTRACTED_DIR="${DIR}/PersonalPage-main"
+        if [ -d "$EXTRACTED_DIR" ]; then
+            mv -v "$EXTRACTED_DIR"/* "$DIR/"
+            rmdir "$EXTRACTED_DIR"
+        fi
+
+        # 删除zip文件
+        echo "Removing the zip file..."
+        rm -f "$ZIP_FILE"
+        echo "Setup completed."
+
+        # 运行Docker容器
+        docker run -d \
+            -p 8899:80 \
+            --name pswb \
+            -v /home/dc/website/nginx/pswb.conf:/etc/nginx/pswb.conf \
+            -v /home/dc/website/:/usr/share/nginx/html \
+            nginx:alpine
+
+        docker exec pswb nginx -t
+        docker exec pswb nginx -s reload
+
+        clear
+
+        ip_address
+        echo "个人网页搭建好咯~ "
+        echo "http://$ipv4_address:8899"
+        echo "html和nginx路径均为/home/dc/website/"
+        echo "自行更改html文件及nginx配置文件哦~"
+        echo " "
+        ;;
+    3)
+        echo "停止并删除pswb容器..."
+        docker stop pswb
+        docker rm pswb
+        ;;
+    *)
+        echo "继续执行脚本..."
+        ;;
+esac
 
 
+echo "脚本运行完毕 拜拜( ^_^ )/~~"
+# 提示用户按任意键继续
+read -n 1 -s -r -p "按任意键退出"
+echo ""
+
+# 提示用户脚本执行完毕
+echo "现在已返回到/root目录"
 
 
-docker run -d \
-    -p 8899:80 \
-    --name pswb \
-    -v /home/dc/website/nginx/pswb.conf:/etc/nginx/pswb.conf \
-    -v /home/dc/website/:/usr/share/nginx/html \
-    nginx:alpine
-
-docker exec pswb nginx -t
-docker exec pswb nginx -s reload
-
-ip_address=$(hostname -I | cut -d' ' -f1)
-
-# 输出完成的提示信息
-echo "个人网页搭建好咯~ 通过http://${ip_address}:8899访问"
