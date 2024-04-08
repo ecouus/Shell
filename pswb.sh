@@ -10,7 +10,18 @@ ipv4_address=$(curl -s ipv4.ip.sb)
 ipv6_address=$(curl -s --max-time 1 ipv6.ip.sb)
 }
 
+iptables_open() {
+    iptables -P INPUT ACCEPT
+    iptables -P FORWARD ACCEPT
+    iptables -P OUTPUT ACCEPT
+    iptables -F
 
+    ip6tables -P INPUT ACCEPT
+    ip6tables -P FORWARD ACCEPT
+    ip6tables -P OUTPUT ACCEPT
+    ip6tables -F
+
+}
 
 install_docker() {
     if ! command -v docker &>/dev/null; then
@@ -34,6 +45,7 @@ install_docker() {
 
 sudo apt install wget unzip -y
 install_docker
+iptables_open
 
 # 用户选择
 clear
