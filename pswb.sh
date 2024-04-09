@@ -105,7 +105,7 @@ case $user_choice in
         docker run -d \
             -p 8899:80 \
             --name pswb \
-            -v /home/dc/PersonalWeb/nginx/pswb.conf:/etc/nginx/pswb.conf \
+            -v /home/dc/PersonalWeb/nginx/pswb.conf:/etc/nginx/conf.d \
             -v /home/dc/PersonalWeb/:/usr/share/nginx/html \
             nginx:alpine
 
