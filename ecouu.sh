@@ -55,7 +55,7 @@ while true; do
     echo -e "\033[38;5;208m  ___  ___  __\033[0m"
     echo -e "\033[38;5;208m |___ |    |  | \033[0m"
     echo -e "\033[38;5;208m |___ |___ |__| \033[0m"
-    echo -e "\033[38;5;208m By Rantional \033[0m"
+    echo -e "\033[38;5;208m By Rational \033[0m"
     echo -e "\033[38;5;208m Blog：https://ecouu.com \033[0m"
     echo " "
 
