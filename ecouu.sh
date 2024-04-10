@@ -44,8 +44,7 @@ install_docker() {
 
 
 sudo apt install wget unzip -y
-install_docker
-iptables_open
+
 
 # 用户选择
 clear
@@ -76,6 +75,8 @@ while true; do
 
                     case $user_choice in
                         1)
+                            install_docker
+                            iptables_open
                             DIR="/home/dc/PersonalWeb"
                             # 检查目录是否存在
                             if [ -d "$DIR" ]; then
@@ -166,6 +167,8 @@ while true; do
 
                     case $user_choice in
                         1)
+                            install_docker
+                            iptables_open
                             # 检查名为sun-panel的容器是否存在
                             container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "sun-panel")
                             if [ "$container_exists" = "sun-panel" ]; then
