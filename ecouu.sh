@@ -3,7 +3,7 @@
 #yum update -y && yum install curl -y #CentOS/Fedora
 #apt-get update -y && apt-get install curl -y #Debian/Ubuntu
 #远程下载代码curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/ecouu.sh && sudo chmod +x ecouu.sh && ./ecouu.sh
-
+ln -sf ~/ecouu.sh /usr/local/bin/e
 
 ip_address() {
 ipv4_address=$(curl -s ipv4.ip.sb)
@@ -71,6 +71,7 @@ while true; do
                     echo "菜单栏："
                     echo "------------------------"
                     echo "1.安装项目     2.删除项目"
+                    echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
 
                     case $user_choice in
@@ -146,7 +147,7 @@ while true; do
                             ;;
                         0)
                             clear
-                            exit
+                            e
                             ;;    
                     esac           
                 done
@@ -160,7 +161,7 @@ while true; do
                     echo "菜单栏："
                     echo "------------------------"
                     echo "1.安装项目     2.删除项目"
-                    echo "0.退出脚本"
+                    echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
 
                     case $user_choice in
@@ -201,7 +202,7 @@ while true; do
                             ;;
                         0)
                             clear
-                            exit
+                            e
                             ;;    
 
                     esac
