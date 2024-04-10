@@ -132,7 +132,6 @@ while true; do
                             docker run -d \
                                 -p $port:80 \
                                 --name pswb \
-                                -v /home/dc/PersonalWeb/nginx/pswb.conf:/etc/nginx/pswb.conf \
                                 -v /home/dc/PersonalWeb/:/usr/share/nginx/html \
                                 nginx:alpine
 
@@ -145,8 +144,8 @@ while true; do
                             echo "个人网页已搭建 "
                             echo "http://$ip_address:$port"
                             echo " "
-                            echo "html和nginx路径均为/home/dc/PersonalWeb/"
-                            echo "请自行更改html文件及nginx配置文件"
+                            echo "html路径为/home/dc/PersonalWeb/"
+                            echo "请自行配置html"
                             echo " "
                             # 提示用户按任意键继续
                             read -n 1 -s -r -p "按任意键退出脚本"
@@ -244,7 +243,6 @@ while true; do
 
         esac
 done
-
 
 
 
