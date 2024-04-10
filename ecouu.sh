@@ -41,6 +41,9 @@ install_docker() {
     fi
 }
 
+renew(){
+    curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/ecouu.sh && sudo chmod +x ecouu.sh && ./ecouu.sh
+}
 
 
 sudo apt install wget unzip -y
@@ -59,6 +62,7 @@ while true; do
     echo "菜单栏："
     echo "------------------------"
     echo "1.个人主页     2.导航站     "
+    echo "9.更新脚本"
     read -p "请输入你的选择：" choice
         case $choice in
             1)
@@ -143,13 +147,12 @@ while true; do
                             docker rm pswb
                             rm -rf /home/dc/PersonalWeb
                             ;;
+                        0)
+                            e
+                            exit
                         *)
                             echo "无效输入"
-                            ;;
-                        0)
-                            clear
-                            e
-                            ;;    
+                            ;; 
                     esac           
                 done
                 ;;  
@@ -200,14 +203,13 @@ while true; do
                             rm -rf /home/dc/sun-panel
                             echo "sun-panel 容器已停止并删除"
                             ;;
+                        0)
+                            e
+                            exit
+                            ;;   
                         *)
                             echo "无效输入"
                             ;;
-                        0)
-                            clear
-                            e
-                            ;;    
-
                     esac
                 done
                 ;;
@@ -215,6 +217,13 @@ while true; do
                 clear
                 exit
                 ;;
+            9)
+                renew
+                ;;
+            *)
+                echo "无效输入"
+                ;;
+
         esac
 done
 
