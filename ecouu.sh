@@ -106,7 +106,7 @@ while true; do
                             cd "$DIR"
 
                             # 定义GitHub仓库zip文件的URL
-                            ZIP_URL="https://github.com/ecouus/PersonalPage/archive/refs/heads/main.zip"
+                            ZIP_URL="https://github.com/DoWake/PersonalPage/archive/refs/heads/main.zip"
                             ZIP_FILE="${DIR}/PersonalWeb.zip"
 
                             # 下载zip文件
