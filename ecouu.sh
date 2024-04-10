@@ -204,6 +204,8 @@ while true; do
                             check_ip_address
                             echo "导航站已搭建 "
                             echo "http://$ip_address:$port"
+                            echo "默认账号：admin@sun.cc"
+                            echo "默认密码：12345678"
                             echo " "
                             echo "脚本运行完毕"
                             # 提示用户按任意键继续
