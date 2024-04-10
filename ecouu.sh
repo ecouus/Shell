@@ -5,9 +5,21 @@
 #远程下载代码curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/ecouu.sh && sudo chmod +x ecouu.sh && ./ecouu.sh
 ln -sf ~/ecouu.sh /usr/local/bin/e
 
-ip_address() {
-ipv4_address=$(curl -s ipv4.ip.sb)
-ipv6_address=$(curl -s --max-time 1 ipv6.ip.sb)
+check_ip_address() {
+    local ipv4_address=$(curl -s --max-time 5 ipv4.ip.sb)
+    local ipv6_address=$(curl -s --max-time 5 ipv6.ip.sb)
+
+    # 判断IPv4地址是否获取成功
+    if [[ -n "$ipv4_address" ]]; then
+        ip_address=$ipv4_address
+    elif [[ -n "$ipv6_address" ]]; then
+        # 如果IPv4地址未获取到，但IPv6地址获取成功，则使用IPv6地址
+        ip_address=[$ipv6_address]
+    else
+        # 如果两个地址都没有获取到，可以在这里处理这种情况
+        echo "无法获取IP地址"
+        ip_address=""
+    fi
 }
 
 iptables_open() {
@@ -129,9 +141,9 @@ while true; do
 
                             clear
 
-                            ip_address
+                            check_ip_address
                             echo "个人网页已搭建 "
-                            echo "http://$ipv4_address:$port"
+                            echo "http://$ip_address:$port"
                             echo " "
                             echo "html和nginx路径均为/home/dc/PersonalWeb/"
                             echo "请自行更改html文件及nginx配置文件"
@@ -146,10 +158,14 @@ while true; do
                             docker stop pswb
                             docker rm pswb
                             rm -rf /home/dc/PersonalWeb
+                            echo "已彻底删除"
+                            read -n 1 -s -r -p "按任意键返回"
+                            echo  # 添加一个新行作为输出的一部分
                             ;;
                         0)
                             e
                             exit
+                            ;;
                         *)
                             echo "无效输入"
                             ;; 
@@ -186,9 +202,9 @@ while true; do
                                 --name sun-panel \
                                 hslr/sun-panel
                             fi
-                            ip_address
+                            check_ip_address
                             echo "导航站已搭建 "
-                            echo "http://$ipv4_address:$port"
+                            echo "http://$ip_address:$port"
                             echo " "
                             echo "脚本运行完毕"
                             # 提示用户按任意键继续
@@ -201,7 +217,9 @@ while true; do
                             docker stop sun-panel
                             docker rm sun-panel
                             rm -rf /home/dc/sun-panel
-                            echo "sun-panel 容器已停止并删除"
+                            echo "已彻底删除"
+                            read -n 1 -s -r -p "按任意键返回"
+                            echo  # 添加一个新行作为输出的一部分
                             ;;
                         0)
                             e
