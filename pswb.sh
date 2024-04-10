@@ -1,7 +1,7 @@
 #!/bin/bash
-#安装weget curl依赖包
-#yum update -y && yum install curl -y #CentOS/Fedora
-#apt-get update -y && apt-get install curl -y #Debian/Ubuntu
+#安装curl sudo依赖包
+#yum update -y && yum install curl -y && yum install sudo -y #CentOS/Fedora
+#apt update -y && apt install curl -y && apt install sudo -y #Debian/Ubuntu
 #远程下载代码curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/pswb.sh && sudo chmod +x pswb.sh && ./pswb.sh
 
 
