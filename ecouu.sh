@@ -58,7 +58,7 @@ renew(){
 }
 
 
-sudo apt install wget git unzip nano -y
+sudo apt install wget unzip -y
 
 
 # 用户选择
@@ -73,7 +73,7 @@ while true; do
 
     echo "菜单栏："
     echo "------------------------"
-    echo "1.个人主页     2.导航站     "
+    echo "1.个人主页     2.导航站     3.Nginx Proxy Manager"
     echo "9.更新脚本"
     read -p "请输入你的选择：" choice
         case $choice in
@@ -232,6 +232,63 @@ while true; do
                     esac
                 done
                 ;;
+            3)
+                while true; do
+                clear
+                    echo "Nginx Proxy Manager"
+                    echo "请确保未安装nginx或已停止nginx后再进行安装"
+                    echo "1.安装   2.卸载"                   
+                    echo "0.返回主菜单"
+                    read -p "请输入你的选择：" user_choice
+                    case $user_choice in
+                        1)
+                            
+                            install_docker
+                            iptables_open
+                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "npm-app-1")
+                            if [ "$container_exists" = "npm-app-1" ]; then
+                                echo "已安装"
+                            else
+                                port=81 
+                                curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/daemon.json -o /etc/docker/daemon.json
+                                sudo systemctl reload docker
+                                mkdir -p /home/dc/npm
+                                curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/npm.yml -o /home/dc/npm/docker-compose.yml
+                                cd /home/dc/npm   # 来到 dockercompose 文件所在的文件夹下
+                                docker-compose up -d
+                            fi
+                            check_ip_address
+                            echo "Nginx Proxy Manager已搭建 "
+                            echo "http://$ip_address:$port"
+                            echo "默认账号：admin@example.com"
+                            echo "默认密码：changeme"
+                            echo " "
+                            echo "脚本运行完毕"
+                            # 提示用户按任意键继续
+                            read -n 1 -s -r -p "按任意键退出脚本"
+                            echo  # 添加一个新行作为输出的一部分
+                            exit 0  # 退出脚本
+                            ;;   
+                        2)
+                            # 停止并删除名为sun-panel的容器
+                            docker stop npm-app-1
+                            docker rm npm-app-1
+                            rm -rf /home/dc/npm
+                            echo "已彻底删除"
+                            read -n 1 -s -r -p "按任意键返回"
+                            echo  # 添加一个新行作为输出的一部分
+                            ;;
+
+                        0)
+                            e
+                            exit
+                            ;;   
+                        *)
+                            echo "无效输入"
+                            ;;              
+                    esac
+                done
+                ;;        
             0)
                 clear
                 exit
