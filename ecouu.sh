@@ -58,7 +58,7 @@ renew(){
 }
 
 
-sudo apt install wget unzip -y
+sudo apt install wget git unzip nano -y
 
 
 # 用户选择
