@@ -87,8 +87,8 @@ while true; do
     #echo -e "\033[38;5;208m  ___  ___  __\033[0m"
     #echo -e "\033[38;5;208m |___ |    |  | \033[0m"
     #echo -e "\033[38;5;208m |___ |___ |__| \033[0m"
-    echo -e "\033[38;5;208m By Rational \033[0m"
-    echo -e "\033[38;5;208m Blog：https://ecouu.com \033[0m"
+    echo -e "\033[38;5;208mBy Rational \033[0m"
+    echo -e "\033[38;5;208mBlog：https://ecouu.com \033[0m"
     echo "输入e即可召唤此脚本"
     echo " "
 
