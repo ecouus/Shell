@@ -64,11 +64,11 @@ sudo apt install wget unzip -y
 # 用户选择
 clear
 while true; do
-    echo -e "\033[38;5;208m  ___  ___  __\033[0m"
-    echo -e "\033[38;5;208m |___ |    |  | \033[0m"
-    echo -e "\033[38;5;208m |___ |___ |__| \033[0m"
-    echo -e "\033[38;5;208m By Rational \033[0m"
-    echo -e "\033[38;5;208m Blog：https://ecouu.com \033[0m"
+    echo -e "\033[38;5;208m ___  ___  __\033[0m"
+    echo -e "\033[38;5;208m|___ |    |  | \033[0m"
+    echo -e "\033[38;5;208m|___ |___ |__| \033[0m"
+    echo -e "\033[38;5;208mBy Rational \033[0m"
+    echo -e "\033[38;5;208mBlog：https://ecouu.com \033[0m"
     echo " "
 
     echo "菜单栏："
@@ -80,7 +80,7 @@ while true; do
             1)
                 while true; do
                     clear
-                    echo -e "\033[38;5;208m  个人主页搭建\033[0m"
+                    echo -e "\033[38;5;208m个人主页搭建\033[0m"
                     echo "源码：https://github.com/DoWake/PersonalPage"
                     echo "------------------------"
                     echo "菜单栏："
@@ -174,7 +174,7 @@ while true; do
             2)
                 while true; do
                 clear
-                    echo -e "\033[38;5;208m  导航站搭建\033[0m"
+                    echo -e "\033[38;5;208m导航站搭建\033[0m"
                     echo "源码：https://github.com/hslr-s/sun-panel"
                     echo "------------------------"
                     echo "菜单栏："
@@ -235,8 +235,8 @@ while true; do
             3)
                 while true; do
                 clear
-                    echo -e "\033[38;5;208m  Nginx Proxy Manager\033[0m"
-                    echo "请确保未安装nginx或已停止nginx后再进行安装"
+                    echo -e "\033[38;5;208mNginx Proxy Manager\033[0m"
+                    echo "请确保未安装nginx或已停止nginx后再进行安装 并释放80端口"
                     echo "1.安装   2.更新   3.卸载"                   
                     echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
@@ -316,6 +316,3 @@ while true; do
 
         esac
 done
-
-
-
