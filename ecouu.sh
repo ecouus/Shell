@@ -80,7 +80,7 @@ while true; do
             1)
                 while true; do
                     clear
-                    echo "个人主页搭建"
+                    echo -e "\033[38;5;208m  个人主页搭建\033[0m"
                     echo "源码：https://github.com/DoWake/PersonalPage"
                     echo "------------------------"
                     echo "菜单栏："
@@ -174,12 +174,12 @@ while true; do
             2)
                 while true; do
                 clear
-                    echo "导航站搭建"
+                    echo -e "\033[38;5;208m  导航站搭建\033[0m"
                     echo "源码：https://github.com/hslr-s/sun-panel"
                     echo "------------------------"
                     echo "菜单栏："
                     echo "------------------------"
-                    echo "1.安装项目     2.删除项目"
+                    echo "1.安装项目     3.删除项目"
                     echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
 
@@ -235,9 +235,9 @@ while true; do
             3)
                 while true; do
                 clear
-                    echo "Nginx Proxy Manager"
+                    echo -e "\033[38;5;208m  Nginx Proxy Manager\033[0m"
                     echo "请确保未安装nginx或已停止nginx后再进行安装"
-                    echo "1.安装   2.卸载"                   
+                    echo "1.安装   2.更新   3.卸载"                   
                     echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
                     case $user_choice in
@@ -245,17 +245,23 @@ while true; do
                             
                             install_docker
                             iptables_open
-                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "npm-app-1")
-                            if [ "$container_exists" = "npm-app-1" ]; then
-                                echo "已安装"
+                            # 检查80端口是否被占用
+                            if ss -ltn | grep -q ':80 '; then
+                                echo "80端口已被占用，安装失败"
+                                exit 1
                             else
-                                port=81 
-                                curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/daemon.json -o /etc/docker/daemon.json
-                                sudo systemctl reload docker
-                                mkdir -p /home/dc/npm
-                                curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/npm.yml -o /home/dc/npm/docker-compose.yml
-                                cd /home/dc/npm   # 来到 dockercompose 文件所在的文件夹下
-                                docker-compose up -d
+                                container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "npm-app-1")
+                                if [ "$container_exists" = "npm-app-1" ]; then
+                                    echo "已安装"
+                                else
+                                    port=81 
+                                    curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/daemon.json -o /etc/docker/daemon.json
+                                    sudo systemctl reload docker
+                                    mkdir -p /home/dc/npm
+                                    curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/npm.yml -o /home/dc/npm/docker-compose.yml
+                                    cd /home/dc/npm   # 来到 docker-compose 文件所在的文件夹下
+                                    docker-compose up -d
+                                fi
                             fi
                             check_ip_address
                             echo "Nginx Proxy Manager已搭建 "
@@ -268,11 +274,19 @@ while true; do
                             read -n 1 -s -r -p "按任意键退出脚本"
                             echo  # 添加一个新行作为输出的一部分
                             exit 0  # 退出脚本
-                            ;;   
+                            ;;
                         2)
+                            cd /home/dc/npm
+                            docker-compose down 
+                            cp -r /home/dc/npm /home/dc/backups/npm.archive  # 备个份先
+                            docker-compose pull
+                            docker-compose up -d    # docker-compose up -d 直接升级容器时会自动停止并立刻重建新的容器，节省时间
+                            docker image prune 
+                            ;;
+                        3)
                             # 停止并删除名为sun-panel的容器
-                            docker stop npm-app-1
-                            docker rm npm-app-1
+                            cd /home/dc/npm
+                            docker-compose down 
                             rm -rf /home/dc/npm
                             echo "已彻底删除"
                             read -n 1 -s -r -p "按任意键返回"
