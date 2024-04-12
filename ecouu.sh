@@ -96,7 +96,8 @@ while true; do
     echo "------------------------"
     echo "1.PersonalPage     2.homepage     "
     echo "3.sun-panel        4.Nginx Proxy Manager   "
-    echo "9.更新脚本"
+    echo " "  
+    echo "0.退出脚本   9.更新脚本"
     read -p "请输入你的选择：" choice
         case $choice in
             1)
@@ -115,6 +116,7 @@ while true; do
                         1)
                             install_docker
                             iptables_open
+                            port=8899
                             # 检查名为PersonalPage的容器是否存在
                             container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
                             if [ "$container_exists" = "$name" ]; then
@@ -154,7 +156,7 @@ while true; do
                                 echo "Removing the zip file..."
                                 rm -f "$ZIP_FILE"
                                 echo "Setup completed."
-                                port=8899
+                                
                                 # 初始化端口占用信息变量
                                 ports_to_check=$port
                                 # 使用函数检查定义的端口数组
@@ -222,6 +224,7 @@ while true; do
                         1)
                             install_docker
                             iptables_open
+                            port=6292
                             # 检查名为homepage的容器是否存在
                             container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
                             if [ "$container_exists" = "$name" ]; then
@@ -261,7 +264,7 @@ while true; do
                                 echo "Removing the zip file..."
                                 rm -f "$ZIP_FILE"
                                 echo "Setup completed."
-                                port=6292
+                                
                                 # 初始化端口占用信息变量
                                 ports_to_check=$port
                                 # 使用函数检查定义的端口数组
@@ -329,13 +332,13 @@ while true; do
                         1)
                             install_docker
                             iptables_open                     
-
+                            port=3002
                             # 检查名为sun-panel的容器是否存在
                             container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
                             if [ "$container_exists" = "$name" ]; then
                                 echo "已安装"
                             else
-                                port=3002
+                                
                                 # 初始化端口占用信息变量
                                 ports_to_check=$port
                                 # 使用函数检查定义的端口数组
@@ -397,6 +400,7 @@ while true; do
                         1)                           
                             install_docker
                             iptables_open
+                            port=81
                             # 初始化端口占用信息变量
                             ports_to_check=(80 443)
                             # 使用函数检查定义的端口数组
@@ -410,7 +414,7 @@ while true; do
                             if [ "$container_exists" = "npm-app-1" ]; then
                                 echo "npm-app-1容器已存在"
                             else
-                                port=81 
+ 
                                 curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/daemon.json -o /etc/docker/daemon.json
                                 sudo systemctl reload docker
                                 mkdir -p /home/dc/npm
