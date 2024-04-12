@@ -114,53 +114,67 @@ while true; do
                         1)
                             install_docker
                             iptables_open
-                            DIR="/home/dc/$name"
-                            # 检查目录是否存在
-                            if [ -d "$DIR" ]; then
-                                echo "Directory $DIR already exists."
+                            # 检查名为PersonalPage的容器是否存在
+                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                            if [ "$container_exists" = "$name" ]; then
+                                echo "已安装"
                             else
-                                echo "Creating directory $DIR."
-                                mkdir -p "$DIR"
+                                DIR="/home/dc/$name"
+                                # 检查目录是否存在
+                                if [ -d "$DIR" ]; then
+                                    echo "Directory $DIR already exists."
+                                else
+                                    echo "Creating directory $DIR."
+                                    mkdir -p "$DIR"
+                                fi
+
+                                # 导航到目录
+                                cd "$DIR"
+
+                                # 定义GitHub仓库zip文件的URL
+                                ZIP_URL="https://github.com/DoWake/PersonalPage/archive/refs/heads/main.zip"
+                                ZIP_FILE="${DIR}/$name.zip"
+
+                                # 下载zip文件
+                                echo "Downloading the zip file from $ZIP_URL..."
+                                wget -O "$ZIP_FILE" "$ZIP_URL"
+
+                                # 解压zip文件
+                                echo "Unzipping the file..."
+                                unzip -o "$ZIP_FILE" -d "$DIR"
+
+                                EXTRACTED_DIR="${DIR}/$name-main"
+                                if [ -d "$EXTRACTED_DIR" ]; then
+                                    mv -v "$EXTRACTED_DIR"/* "$DIR/"
+                                    rmdir "$EXTRACTED_DIR"
+                                fi
+
+                                # 删除zip文件
+                                echo "Removing the zip file..."
+                                rm -f "$ZIP_FILE"
+                                echo "Setup completed."
+                                port=8899
+                                # 初始化端口占用信息变量
+                                ports_to_check=$port
+                                # 使用函数检查定义的端口数组
+                                if ! check_ports "${ports_to_check[@]}"; then
+                                    exit 1  # 如果检查失败则退出
+                                else
+                                    echo "端口未被占用，可以继续执行"
+                                fi
+
+                                # 运行Docker容器
+                                docker run -d \
+                                    -p $port:80 \
+                                    --name $name \
+                                    -v /home/dc/$name/:/usr/share/nginx/html \
+                                    nginx:alpine
+
+                                docker exec $name nginx -t
+                                docker exec $name nginx -s reload
                             fi
-
-                            # 导航到目录
-                            cd "$DIR"
-
-                            # 定义GitHub仓库zip文件的URL
-                            ZIP_URL="https://github.com/DoWake/PersonalPage/archive/refs/heads/main.zip"
-                            ZIP_FILE="${DIR}/$name.zip"
-
-                            # 下载zip文件
-                            echo "Downloading the zip file from $ZIP_URL..."
-                            wget -O "$ZIP_FILE" "$ZIP_URL"
-
-                            # 解压zip文件
-                            echo "Unzipping the file..."
-                            unzip -o "$ZIP_FILE" -d "$DIR"
-
-                            EXTRACTED_DIR="${DIR}/$name-main"
-                            if [ -d "$EXTRACTED_DIR" ]; then
-                                mv -v "$EXTRACTED_DIR"/* "$DIR/"
-                                rmdir "$EXTRACTED_DIR"
-                            fi
-
-                            # 删除zip文件
-                            echo "Removing the zip file..."
-                            rm -f "$ZIP_FILE"
-                            echo "Setup completed."
-                            port=8899
-                            # 运行Docker容器
-                            docker run -d \
-                                -p $port:80 \
-                                --name $name \
-                                -v /home/dc/$name/:/usr/share/nginx/html \
-                                nginx:alpine
-
-                            docker exec $name nginx -t
-                            docker exec $name nginx -s reload
-
+                        
                             clear
-
                             check_ip_address
                             echo "$name已搭建 "
                             echo "http://$ip_address:$port"
@@ -207,53 +221,67 @@ while true; do
                         1)
                             install_docker
                             iptables_open
-                            DIR="/home/dc/$name"
-                            # 检查目录是否存在
-                            if [ -d "$DIR" ]; then
-                                echo "Directory $DIR already exists."
+                            # 检查名为homepage的容器是否存在
+                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                            if [ "$container_exists" = "$name" ]; then
+                                echo "已安装"
                             else
-                                echo "Creating directory $DIR."
-                                mkdir -p "$DIR"
-                            fi
+                                DIR="/home/dc/$name"
+                                # 检查目录是否存在
+                                if [ -d "$DIR" ]; then
+                                    echo "Directory $DIR already exists."
+                                else
+                                    echo "Creating directory $DIR."
+                                    mkdir -p "$DIR"
+                                fi
 
-                            # 导航到目录
-                            cd "$DIR"
+                                # 导航到目录
+                                cd "$DIR"
 
-                            # 定义GitHub仓库zip文件的URL
-                            ZIP_URL="https://github.com/ZYYO666/homepage/archive/refs/heads/main.zip"
-                            ZIP_FILE="${DIR}/$name.zip"
+                                # 定义GitHub仓库zip文件的URL
+                                ZIP_URL="https://github.com/ZYYO666/homepage/archive/refs/heads/main.zip"
+                                ZIP_FILE="${DIR}/$name.zip"
 
-                            # 下载zip文件
-                            echo "Downloading the zip file from $ZIP_URL..."
-                            wget -O "$ZIP_FILE" "$ZIP_URL"
+                                # 下载zip文件
+                                echo "Downloading the zip file from $ZIP_URL..."
+                                wget -O "$ZIP_FILE" "$ZIP_URL"
 
-                            # 解压zip文件
-                            echo "Unzipping the file..."
-                            unzip -o "$ZIP_FILE" -d "$DIR"
+                                # 解压zip文件
+                                echo "Unzipping the file..."
+                                unzip -o "$ZIP_FILE" -d "$DIR"
 
-                            EXTRACTED_DIR="${DIR}/$name-main"
-                            if [ -d "$EXTRACTED_DIR" ]; then
-                                mv -v "$EXTRACTED_DIR"/* "$DIR/"
-                                rmdir "$EXTRACTED_DIR"
-                            fi
+                                EXTRACTED_DIR="${DIR}/$name-main"
+                                if [ -d "$EXTRACTED_DIR" ]; then
+                                    mv -v "$EXTRACTED_DIR"/* "$DIR/"
+                                    rmdir "$EXTRACTED_DIR"
+                                fi
 
-                            # 删除zip文件
-                            echo "Removing the zip file..."
-                            rm -f "$ZIP_FILE"
-                            echo "Setup completed."
-                            port=6292
-                            # 运行Docker容器
-                            docker run -d \
-                                -p $port:80 \
-                                --name $name \
-                                -v /home/dc/$name/:/usr/share/nginx/html \
-                                nginx:alpine
+                                # 删除zip文件
+                                echo "Removing the zip file..."
+                                rm -f "$ZIP_FILE"
+                                echo "Setup completed."
+                                port=6292
+                                # 初始化端口占用信息变量
+                                ports_to_check=$port
+                                # 使用函数检查定义的端口数组
+                                if ! check_ports "${ports_to_check[@]}"; then
+                                    exit 1  # 如果检查失败则退出
+                                else
+                                    echo "端口未被占用，可以继续执行"
+                                fi
 
-                            docker exec $name nginx -t
-                            docker exec $name nginx -s reload
+                                # 运行Docker容器
+                                docker run -d \
+                                    -p $port:80 \
+                                    --name $name \
+                                    -v /home/dc/$name/:/usr/share/nginx/html \
+                                    nginx:alpine
+
+                                docker exec $name nginx -t
+                                docker exec $name nginx -s reload
+                            fi      
 
                             clear
-
                             check_ip_address
                             echo "$name已搭建 "
                             echo "http://$ip_address:$port"
@@ -299,13 +327,23 @@ while true; do
                     case $user_choice in
                         1)
                             install_docker
-                            iptables_open
+                            iptables_open                     
+
                             # 检查名为sun-panel的容器是否存在
                             container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
                             if [ "$container_exists" = "$name" ]; then
                                 echo "已安装"
                             else
                                 port=3002
+                                # 初始化端口占用信息变量
+                                ports_to_check=$port
+                                # 使用函数检查定义的端口数组
+                                if ! check_ports "${ports_to_check[@]}"; then
+                                    exit 1  # 如果检查失败则退出
+                                else
+                                    echo "端口未被占用，可以继续执行"
+                                fi
+
                                 docker pull hslr/sun-panel
                                 docker run -d --restart=always -p $port:3002 \
                                 -v /home/dc/$name/conf:/app/conf \
@@ -314,6 +352,8 @@ while true; do
                                 --name $name \
                                 hslr/sun-panel
                             fi
+
+                            clear
                             check_ip_address
                             echo "$name已搭建 "
                             echo "http://$ip_address:$port"
@@ -357,13 +397,12 @@ while true; do
                             install_docker
                             iptables_open
                             # 初始化端口占用信息变量
-                            # 定义要检查的端口变量为一个数组
                             ports_to_check=(80 443)
                             # 使用函数检查定义的端口数组
                             if ! check_ports "${ports_to_check[@]}"; then
                                 exit 1  # 如果检查失败则退出
                             else
-                                echo "所有端口未被占用，可以继续执行"
+                                echo "端口未被占用，可以继续执行"
                             fi
 
                             container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "npm-app-1")
@@ -378,6 +417,8 @@ while true; do
                                 cd /home/dc/npm   # 来到 docker-compose 文件所在的文件夹下
                                 docker-compose up -d
                             fi
+
+                            clear
                             check_ip_address
                             echo "Nginx Proxy Manager已搭建 "
                             echo "http://$ip_address:$port"
