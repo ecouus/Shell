@@ -22,6 +22,26 @@ check_ip_address() {
     fi
 }
 
+
+check_ports() {
+    local ports=("$@")  # 接受一个数组参数，包含所有要检查的端口
+    local port_errors=""
+
+    for port in "${ports[@]}"; do
+        if ss -ltn | grep -q ":$port "; then
+            port_errors+="$port端口已被占用 "
+        fi
+    done
+
+    if [ ! -z "$port_errors" ]; then
+        echo "$port_errors 安装失败"
+        return 1  # 返回1表示有端口被占用
+    fi
+
+    return 0  # 返回0表示所有端口都未被占用
+}
+
+
 iptables_open() {
     iptables -P INPUT ACCEPT
     iptables -P FORWARD ACCEPT
@@ -62,25 +82,26 @@ sudo apt install wget unzip -y
 
 
 # 用户选择
-clear
 while true; do
-    echo -e "\033[38;5;208m ___  ___  __\033[0m"
-    echo -e "\033[38;5;208m|___ |    |  | \033[0m"
-    echo -e "\033[38;5;208m|___ |___ |__| \033[0m"
-    echo -e "\033[38;5;208mBy Rational \033[0m"
-    echo -e "\033[38;5;208mBlog：https://ecouu.com \033[0m"
+    clear
+    #echo -e "\033[38;5;208m  ___  ___  __\033[0m"
+    #echo -e "\033[38;5;208m |___ |    |  | \033[0m"
+    #echo -e "\033[38;5;208m |___ |___ |__| \033[0m"
+    echo -e "\033[38;5;208m By Rational \033[0m"
+    echo -e "\033[38;5;208m Blog：https://ecouu.com \033[0m"
     echo " "
 
     echo "菜单栏："
     echo "------------------------"
-    echo "1.个人主页     2.导航站     3.Nginx Proxy Manager"
+    echo "1.PersonalPage     2.homepage     "
+    echo "3.sun-panel        4.Nginx Proxy Manager   "
     echo "9.更新脚本"
     read -p "请输入你的选择：" choice
         case $choice in
             1)
                 while true; do
                     clear
-                    echo -e "\033[38;5;208m个人主页搭建\033[0m"
+                    echo -e "\033[38;5;208m'PersonalPage' \033[0m"
                     echo "源码：https://github.com/DoWake/PersonalPage"
                     echo "------------------------"
                     echo "菜单栏："
@@ -88,12 +109,12 @@ while true; do
                     echo "1.安装项目     2.删除项目"
                     echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
-
+                    name=PersonalPage
                     case $user_choice in
                         1)
                             install_docker
                             iptables_open
-                            DIR="/home/dc/PersonalWeb"
+                            DIR="/home/dc/$name"
                             # 检查目录是否存在
                             if [ -d "$DIR" ]; then
                                 echo "Directory $DIR already exists."
@@ -107,7 +128,7 @@ while true; do
 
                             # 定义GitHub仓库zip文件的URL
                             ZIP_URL="https://github.com/DoWake/PersonalPage/archive/refs/heads/main.zip"
-                            ZIP_FILE="${DIR}/PersonalWeb.zip"
+                            ZIP_FILE="${DIR}/$name.zip"
 
                             # 下载zip文件
                             echo "Downloading the zip file from $ZIP_URL..."
@@ -117,7 +138,7 @@ while true; do
                             echo "Unzipping the file..."
                             unzip -o "$ZIP_FILE" -d "$DIR"
 
-                            EXTRACTED_DIR="${DIR}/PersonalPage-main"
+                            EXTRACTED_DIR="${DIR}/$name-main"
                             if [ -d "$EXTRACTED_DIR" ]; then
                                 mv -v "$EXTRACTED_DIR"/* "$DIR/"
                                 rmdir "$EXTRACTED_DIR"
@@ -131,32 +152,31 @@ while true; do
                             # 运行Docker容器
                             docker run -d \
                                 -p $port:80 \
-                                --name pswb \
-                                -v /home/dc/PersonalWeb/:/usr/share/nginx/html \
+                                --name $name \
+                                -v /home/dc/$name/:/usr/share/nginx/html \
                                 nginx:alpine
 
-                            docker exec pswb nginx -t
-                            docker exec pswb nginx -s reload
+                            docker exec $name nginx -t
+                            docker exec $name nginx -s reload
 
                             clear
 
                             check_ip_address
-                            echo "个人网页已搭建 "
+                            echo "$name已搭建 "
                             echo "http://$ip_address:$port"
                             echo " "
-                            echo "html路径为/home/dc/PersonalWeb/"
+                            echo "html路径为/home/dc/$name/"
                             echo "请自行配置html"
                             echo " "
                             # 提示用户按任意键继续
-                            read -n 1 -s -r -p "按任意键退出脚本"
+                            read -n 1 -s -r -p "按任意键返回"
                             echo  # 添加一个新行作为输出的一部分
-                            exit 0  # 退出脚本
                             ;;
                         2)
-                            echo "停止并删除pswb容器..."
-                            docker stop pswb
-                            docker rm pswb
-                            rm -rf /home/dc/PersonalWeb
+                            echo "停止并删除$name 容器..."
+                            docker stop $name
+                            docker rm $name
+                            rm -rf /home/dc/$name
                             echo "已彻底删除"
                             read -n 1 -s -r -p "按任意键返回"
                             echo  # 添加一个新行作为输出的一部分
@@ -173,51 +193,143 @@ while true; do
                 ;;  
             2)
                 while true; do
+                    clear
+                    echo -e "\033[38;5;208m'homepage' \033[0m"
+                    echo "源码：https://github.com/ZYYO666/homepage/archive/refs/heads/main.zip"
+                    echo "------------------------"
+                    echo "菜单栏："
+                    echo "------------------------"
+                    echo "1.安装项目     2.删除项目"
+                    echo "0.返回主菜单"
+                    read -p "请输入你的选择：" user_choice
+                    name=homepage
+                    case $user_choice in
+                        1)
+                            install_docker
+                            iptables_open
+                            DIR="/home/dc/$name"
+                            # 检查目录是否存在
+                            if [ -d "$DIR" ]; then
+                                echo "Directory $DIR already exists."
+                            else
+                                echo "Creating directory $DIR."
+                                mkdir -p "$DIR"
+                            fi
+
+                            # 导航到目录
+                            cd "$DIR"
+
+                            # 定义GitHub仓库zip文件的URL
+                            ZIP_URL="https://github.com/ZYYO666/homepage/archive/refs/heads/main.zip"
+                            ZIP_FILE="${DIR}/$name.zip"
+
+                            # 下载zip文件
+                            echo "Downloading the zip file from $ZIP_URL..."
+                            wget -O "$ZIP_FILE" "$ZIP_URL"
+
+                            # 解压zip文件
+                            echo "Unzipping the file..."
+                            unzip -o "$ZIP_FILE" -d "$DIR"
+
+                            EXTRACTED_DIR="${DIR}/$name-main"
+                            if [ -d "$EXTRACTED_DIR" ]; then
+                                mv -v "$EXTRACTED_DIR"/* "$DIR/"
+                                rmdir "$EXTRACTED_DIR"
+                            fi
+
+                            # 删除zip文件
+                            echo "Removing the zip file..."
+                            rm -f "$ZIP_FILE"
+                            echo "Setup completed."
+                            port=6292
+                            # 运行Docker容器
+                            docker run -d \
+                                -p $port:80 \
+                                --name $name \
+                                -v /home/dc/$name/:/usr/share/nginx/html \
+                                nginx:alpine
+
+                            docker exec $name nginx -t
+                            docker exec $name nginx -s reload
+
+                            clear
+
+                            check_ip_address
+                            echo "$name已搭建 "
+                            echo "http://$ip_address:$port"
+                            echo " "
+                            echo "html路径为/home/dc/$name/"
+                            echo "请自行配置html"
+                            echo " "
+                            # 提示用户按任意键继续
+                            read -n 1 -s -r -p "按任意键返回"
+                            echo  # 添加一个新行作为输出的一部分
+                            ;;
+                        2)
+                            echo "停止并删除$name 容器..."
+                            docker stop $name
+                            docker rm $name
+                            rm -rf /home/dc/$name
+                            echo "已彻底删除"
+                            read -n 1 -s -r -p "按任意键返回"
+                            echo  # 添加一个新行作为输出的一部分
+                            ;;
+                        0)
+                            e
+                            exit
+                            ;;
+                        *)
+                            echo "无效输入"
+                            ;; 
+                    esac           
+                done
+                ;;    
+            3)
+                while true; do
                 clear
-                    echo -e "\033[38;5;208m导航站搭建\033[0m"
+                    echo -e "\033[38;5;208m'sun-panel' \033[0m"
                     echo "源码：https://github.com/hslr-s/sun-panel"
                     echo "------------------------"
                     echo "菜单栏："
                     echo "------------------------"
-                    echo "1.安装项目     3.删除项目"
+                    echo "1.安装项目     2.删除项目"
                     echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
-
+                    name=sun-panel
                     case $user_choice in
                         1)
                             install_docker
                             iptables_open
                             # 检查名为sun-panel的容器是否存在
-                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "sun-panel")
-                            if [ "$container_exists" = "sun-panel" ]; then
+                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                            if [ "$container_exists" = "$name" ]; then
                                 echo "已安装"
                             else
                                 port=3002
                                 docker pull hslr/sun-panel
                                 docker run -d --restart=always -p $port:3002 \
-                                -v /home/dc/sun-panel/conf:/app/conf \
-                                -v /home/dc/sun-panel/uploads:/app/uploads \
-                                -v /home/dc/sun-panel/database:/app/database \
-                                --name sun-panel \
+                                -v /home/dc/$name/conf:/app/conf \
+                                -v /home/dc/$name/uploads:/app/uploads \
+                                -v /home/dc/$name/database:/app/database \
+                                --name $name \
                                 hslr/sun-panel
                             fi
                             check_ip_address
-                            echo "导航站已搭建 "
+                            echo "$name已搭建 "
                             echo "http://$ip_address:$port"
                             echo "默认账号：admin@sun.cc"
                             echo "默认密码：12345678"
                             echo " "
                             echo "脚本运行完毕"
                             # 提示用户按任意键继续
-                            read -n 1 -s -r -p "按任意键退出脚本"
+                            read -n 1 -s -r -p "按任意键返回"
                             echo  # 添加一个新行作为输出的一部分
-                            exit 0  # 退出脚本
                             ;;                   
                         2)
                             # 停止并删除名为sun-panel的容器
-                            docker stop sun-panel
-                            docker rm sun-panel
-                            rm -rf /home/dc/sun-panel
+                            docker stop $name
+                            docker rm $name
+                            rm -rf /home/dc/$name
                             echo "已彻底删除"
                             read -n 1 -s -r -p "按任意键返回"
                             echo  # 添加一个新行作为输出的一部分
@@ -232,36 +344,39 @@ while true; do
                     esac
                 done
                 ;;
-            3)
+            4)
                 while true; do
                 clear
-                    echo -e "\033[38;5;208mNginx Proxy Manager\033[0m"
-                    echo "请确保未安装nginx或已停止nginx后再进行安装 并释放80端口"
-                    echo "1.安装   2.更新   3.卸载"                   
+                    echo -e "\033[38;5;208m'Nginx Proxy Manager' \033[0m"
+                    echo "请确保未安装nginx或已停止nginx后再进行安装 并释放80和443端口"
+                    echo "1.安装   2.卸载"                   
                     echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
                     case $user_choice in
-                        1)
-                            
+                        1)                           
                             install_docker
                             iptables_open
-                            # 检查80端口是否被占用
-                            if ss -ltn | grep -q ':80 '; then
-                                echo "80端口已被占用，安装失败"
-                                exit 1
+                            # 初始化端口占用信息变量
+                            # 定义要检查的端口变量为一个数组
+                            ports_to_check=(80 443)
+                            # 使用函数检查定义的端口数组
+                            if ! check_ports "${ports_to_check[@]}"; then
+                                exit 1  # 如果检查失败则退出
                             else
-                                container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "npm-app-1")
-                                if [ "$container_exists" = "npm-app-1" ]; then
-                                    echo "已安装"
-                                else
-                                    port=81 
-                                    curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/daemon.json -o /etc/docker/daemon.json
-                                    sudo systemctl reload docker
-                                    mkdir -p /home/dc/npm
-                                    curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/npm.yml -o /home/dc/npm/docker-compose.yml
-                                    cd /home/dc/npm   # 来到 docker-compose 文件所在的文件夹下
-                                    docker-compose up -d
-                                fi
+                                echo "所有端口未被占用，可以继续执行"
+                            fi
+
+                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "npm-app-1")
+                            if [ "$container_exists" = "npm-app-1" ]; then
+                                echo "npm-app-1容器已存在"
+                            else
+                                port=81 
+                                curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/daemon.json -o /etc/docker/daemon.json
+                                sudo systemctl reload docker
+                                mkdir -p /home/dc/npm
+                                curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/npm.yml -o /home/dc/npm/docker-compose.yml
+                                cd /home/dc/npm   # 来到 docker-compose 文件所在的文件夹下
+                                docker-compose up -d
                             fi
                             check_ip_address
                             echo "Nginx Proxy Manager已搭建 "
@@ -271,22 +386,13 @@ while true; do
                             echo " "
                             echo "脚本运行完毕"
                             # 提示用户按任意键继续
-                            read -n 1 -s -r -p "按任意键退出脚本"
+                            read -n 1 -s -r -p "按任意键返回"
                             echo  # 添加一个新行作为输出的一部分
-                            exit 0  # 退出脚本
-                            ;;
+                            ;;   
                         2)
-                            cd /home/dc/npm
-                            docker-compose down 
-                            cp -r /home/dc/npm /home/dc/backups/npm.archive  # 备个份先
-                            docker-compose pull
-                            docker-compose up -d    # docker-compose up -d 直接升级容器时会自动停止并立刻重建新的容器，节省时间
-                            docker image prune 
-                            ;;
-                        3)
                             # 停止并删除名为sun-panel的容器
-                            cd /home/dc/npm
-                            docker-compose down 
+                            docker stop npm-app-1
+                            docker rm npm-app-1
                             rm -rf /home/dc/npm
                             echo "已彻底删除"
                             read -n 1 -s -r -p "按任意键返回"
@@ -302,7 +408,8 @@ while true; do
                             ;;              
                     esac
                 done
-                ;;        
+                ;;
+       
             0)
                 clear
                 exit
@@ -316,3 +423,6 @@ while true; do
 
         esac
 done
+
+
+
