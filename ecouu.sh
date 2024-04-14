@@ -94,8 +94,8 @@ while true; do
 
     echo "菜单栏："
     echo "------------------------"
-    echo "1.PersonalPage     2.homepage     "
-    echo "3.sun-panel        4.memos   "
+    echo "1.PersonalPage            2.homepage     "
+    echo "3.sun-panel               4.memos   "
     echo "5.Nginx Proxy Manager   "
     echo " "  
     echo "0.退出脚本   9.更新脚本"
