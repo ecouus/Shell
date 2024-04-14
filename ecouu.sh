@@ -95,7 +95,8 @@ while true; do
     echo "菜单栏："
     echo "------------------------"
     echo "1.PersonalPage     2.homepage     "
-    echo "3.sun-panel        4.Nginx Proxy Manager   "
+    echo "3.sun-panel        4.memos   "
+    echo "5.Nginx Proxy Manager   "
     echo " "  
     echo "0.退出脚本   9.更新脚本"
     read -p "请输入你的选择：" choice
@@ -328,11 +329,11 @@ while true; do
                     echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
                     name=sun-panel
+                    port=3002
                     case $user_choice in
                         1)
                             install_docker
                             iptables_open                     
-                            port=3002
                             # 检查名为sun-panel的容器是否存在
                             container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
                             if [ "$container_exists" = "$name" ]; then
@@ -390,17 +391,81 @@ while true; do
                 ;;
             4)
                 while true; do
+                    clear
+                    echo -e "\033[38;5;208m'Memos' \033[0m"
+                    echo "1.安装   2.卸载"                   
+                    echo "0.返回主菜单"
+                    read -p "请输入你的选择：" user_choice
+                    name=memos
+                    port=5230
+                    case $user_choice in
+                        1)
+                            install_docker
+                            iptables_open                     
+                            # 检查名为memos的容器是否存在
+                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                            if [ "$container_exists" = "$name" ]; then
+                                echo "已安装"
+                            else
+                                
+                                # 初始化端口占用信息变量
+                                ports_to_check=$port
+                                # 使用函数检查定义的端口数组
+                                if ! check_ports "${ports_to_check[@]}"; then
+                                    exit 1  # 如果检查失败则退出
+                                else
+                                    echo "端口未被占用，可以继续执行"
+                                fi
+                                docker pull neosmemo/memos:latest
+                                docker run -d --restart=always -p $port:5230 \
+                                -v /home/dc/$name:/var/opt/memos \
+                                --name $name \
+                                neosmemo/memos:latest
+                            fi
+
+                            clear
+                            check_ip_address
+                            echo "$name已搭建 "
+                            echo "http://$ip_address:$port"
+                            echo " "
+                            echo "脚本运行完毕"
+                            # 提示用户按任意键继续
+                            read -n 1 -s -r -p "按任意键返回"
+                            echo  # 添加一个新行作为输出的一部分
+                            ;;                   
+                        2)
+                            # 停止并删除名为sun-panel的容器
+                            docker stop $name
+                            docker rm $name
+                            rm -rf /home/dc/$name
+                            echo "已彻底删除"
+                            read -n 1 -s -r -p "按任意键返回"
+                            echo  # 添加一个新行作为输出的一部分
+                            ;;
+                        0)
+                            e
+                            exit
+                            ;;   
+                        *)
+                            echo "无效输入"
+                            ;;
+                    esac
+                done
+                ;;               
+
+            5)
+                while true; do
                 clear
                     echo -e "\033[38;5;208m'Nginx Proxy Manager' \033[0m"
                     echo "请确保未安装nginx或已停止nginx后再进行安装 并释放80和443端口"
                     echo "1.安装   2.卸载"                   
                     echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
+                    port=81
                     case $user_choice in
                         1)                           
                             install_docker
                             iptables_open
-                            port=81
                             # 初始化端口占用信息变量
                             ports_to_check=(80 443)
                             # 使用函数检查定义的端口数组
