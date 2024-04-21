@@ -491,7 +491,7 @@ while true; do
                             clear
                             check_ip_address
                             echo "Nginx Proxy Manager已搭建 "
-                            echo "http://$ip_address:$port"
+                            echo "http://$ip_address:81"
                             echo "默认账号：admin@example.com"
                             echo "默认密码：changeme"
                             echo " "
