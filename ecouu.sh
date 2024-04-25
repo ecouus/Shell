@@ -96,7 +96,7 @@ while true; do
     echo "------------------------"
     echo "1.PersonalPage            2.homepage     "
     echo "3.sun-panel               4.memos   "
-    echo "5.Nginx Proxy Manager   "
+    echo "5.Nginx Proxy Manager     6.兰空图床"
     echo " "  
     echo "0.退出脚本   9.更新脚本"
     read -p "请输入你的选择：" choice
