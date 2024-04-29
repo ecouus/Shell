@@ -101,6 +101,9 @@ while true; do
     echo "0.退出脚本   9.更新脚本"
     read -p "请输入你的选择：" choice
         case $choice in
+            docker)
+                install_docker
+                ;;
             1)
                 while true; do
                     clear
