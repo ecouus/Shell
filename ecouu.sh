@@ -463,7 +463,7 @@ while true; do
                 clear
                     echo -e "\033[38;5;208m'Nginx Proxy Manager' \033[0m"
                     echo "请确保未安装nginx或已停止nginx后再进行安装 并释放80和443端口"
-                    echo "1.安装   2.卸载"                   
+                    echo "1.安装   2.卸载   3.更新"                   
                     echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
                     port=81
@@ -514,7 +514,12 @@ while true; do
                             read -n 1 -s -r -p "按任意键返回"
                             echo  # 添加一个新行作为输出的一部分
                             ;;
-
+                        3)
+                            cd /home/dc/npm
+                            docker-compose pull
+                            docker-compose up -d
+                            docker image prune
+                            ;;
                         0)
                             e
                             exit
@@ -529,7 +534,7 @@ while true; do
                 while true; do
                 clear
                     echo -e "\033[38;5;208m'兰空图床lsky-pro' \033[0m"
-                    echo "1.安装   2.卸载"                   
+                    echo "1.安装   2.卸载   3.更新"                   
                     echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
                     port=7791
@@ -579,7 +584,12 @@ while true; do
                             read -n 1 -s -r -p "按任意键返回"
                             echo  # 添加一个新行作为输出的一部分
                             ;;
-
+                        3)
+                            cd /home/dc/lsky-pro
+                            docker-compose pull
+                            docker-compose up -d
+                            docker image prune
+                            ;;
                         0)
                             e
                             exit
@@ -594,7 +604,7 @@ while true; do
                 while true; do
                 clear
                     echo -e "\033[38;5;208m'文件快递柜Filecodebox' \033[0m"
-                    echo "1.安装   2.卸载"                   
+                    echo "1.安装   2.卸载   3.更新"                   
                     echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
                     port=8060
@@ -643,7 +653,12 @@ while true; do
                             read -n 1 -s -r -p "按任意键返回"
                             echo  # 添加一个新行作为输出的一部分
                             ;;
-
+                        3)
+                            cd /home/dc/filecodebox
+                            docker-compose pull
+                            docker-compose up -d
+                            docker image prune
+                            ;;
                         0)
                             e
                             exit
