@@ -97,6 +97,8 @@ while true; do
     echo "1.PersonalPage            2.homepage     "
     echo "3.sun-panel               4.memos   "
     echo "5.Nginx Proxy Manager     6.兰空图床"
+    echo "7.Filecodebox     "
+
     echo " "  
     echo "0.退出脚本   9.更新脚本"
     read -p "请输入你的选择：" choice
@@ -573,6 +575,70 @@ while true; do
                             docker stop lsky-pro lsky-pro-db
                             docker rm lsky-pro lsky-pro-db
                             rm -rf /home/dc/lsky-pro
+                            echo "已彻底删除"
+                            read -n 1 -s -r -p "按任意键返回"
+                            echo  # 添加一个新行作为输出的一部分
+                            ;;
+
+                        0)
+                            e
+                            exit
+                            ;;   
+                        *)
+                            echo "无效输入"
+                            ;;              
+                    esac
+                done
+                ;;
+            7)
+                while true; do
+                clear
+                    echo -e "\033[38;5;208m'文件快递柜Filecodebox' \033[0m"
+                    echo "1.安装   2.卸载"                   
+                    echo "0.返回主菜单"
+                    read -p "请输入你的选择：" user_choice
+                    port=8060
+                    case $user_choice in
+                        1)                           
+                            install_docker
+                            iptables_open
+                            # 初始化端口占用信息变量
+                            ports_to_check=8060
+                            # 使用函数检查定义的端口数组
+                            if ! check_ports "${ports_to_check[@]}"; then
+                                exit 1  # 如果检查失败则退出
+                            else
+                                echo "端口未被占用，可以继续执行"
+                            fi
+
+                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "filecodebox")
+                            if [ "$container_exists" = "filecodebox" ]; then
+                                echo "filecodebox容器已存在"
+                            else
+
+                                mkdir -p /home/dc/filecodebox
+                                curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/filecodebox.yml -o /home/dc/filecodebox/docker-compose.yml
+                                cd /home/dc/filecodebox   # 来到 docker-compose 文件所在的文件夹下
+                                docker-compose up -d
+                            fi
+
+                            clear
+                            check_ip_address
+                            echo "文件快递柜已搭建 "
+                            echo "http://$ip_address:$port"
+                            echo "后台：http://$ip_address:$port/#/admin"
+                            echo "后台默认密码：FileCodeBox2023"
+                            echo " "
+                            echo "脚本运行完毕"
+                            # 提示用户按任意键继续
+                            read -n 1 -s -r -p "按任意键返回"
+                            echo  # 添加一个新行作为输出的一部分
+                            ;;   
+                        2)
+                            # 停止并删除名为sun-panel的容器
+                            docker stop filecodebox
+                            docker rm filecodebox
+                            rm -rf /home/dc/filecodebox
                             echo "已彻底删除"
                             read -n 1 -s -r -p "按任意键返回"
                             echo  # 添加一个新行作为输出的一部分
