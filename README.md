@@ -1,4 +1,4 @@
-# 开源一键可视化shell脚本
+# 开源可视化一键脚本
 ## 安装weget curl依赖包  
 *CentOS/Fedora*  
 `yum update -y && yum install curl -y`  
