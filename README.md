@@ -5,6 +5,6 @@
 *Debian/Ubuntu*  
 `apt-get update -y && apt-get install curl -y`   
 ## 远程下载代码  
-```
+`
 curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/ecouu.sh && sudo chmod +x ecouu.sh && ./ecouu.sh
-```
+`
