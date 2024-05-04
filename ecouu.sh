@@ -3,7 +3,7 @@
 #yum update -y && yum install curl -y #CentOS/Fedora
 #apt-get update -y && apt-get install curl -y #Debian/Ubuntu
 #远程下载代码curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/ecouu.sh && sudo chmod +x ecouu.sh && ./ecouu.sh
-ln -sf ~/ecouu.sh /usr/local/bin/e
+ln -sf ~/ecouu.sh /usr/local/bin/eco
 
 check_ip_address() {
     local ipv4_address=$(curl -s --max-time 5 ipv4.ip.sb)
@@ -89,7 +89,7 @@ while true; do
     #echo -e "\033[38;5;208m |___ |___ |__| \033[0m"
     echo -e "\033[38;5;208mAuthor：Rational \033[0m"
     echo -e "\033[38;5;208mBlog：https://ecouu.com \033[0m"
-    echo "输入e即可召唤此脚本"
+    echo "输入eco即可召唤此脚本"
     echo "------------------------"
 
     echo "菜单栏："
