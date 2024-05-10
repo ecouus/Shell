@@ -43,16 +43,10 @@ check_ports() {
 
 
 iptables_open() {
-    iptables -P INPUT ACCEPT
-    iptables -P FORWARD ACCEPT
-    iptables -P OUTPUT ACCEPT
-    iptables -F
-
-    ip6tables -P INPUT ACCEPT
-    ip6tables -P FORWARD ACCEPT
-    ip6tables -P OUTPUT ACCEPT
-    ip6tables -F
-
+    # 允许指定端口的流量通过
+    port="$1"
+    iptables -A INPUT -p tcp --dport "$port" -j ACCEPT
+    iptables -A OUTPUT -p tcp --sport "$port" -j ACCEPT
 }
 
 install_docker() {
@@ -121,11 +115,12 @@ while true; do
                     echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
                     name=PersonalPage
+                    port=8899
                     case $user_choice in
                         1)
                             install_docker
                             iptables_open
-                            port=8899
+
                             # 检查名为PersonalPage的容器是否存在
                             container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
                             if [ "$container_exists" = "$name" ]; then
@@ -246,11 +241,12 @@ while true; do
                     echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
                     name=homepage
+                    port=6292
                     case $user_choice in
                         1)
                             install_docker
                             iptables_open
-                            port=6292
+                            
                             # 检查名为homepage的容器是否存在
                             container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
                             if [ "$container_exists" = "$name" ]; then
@@ -712,6 +708,7 @@ while true; do
                     echo "1.安装   2.卸载   3.更新"                   
                     echo "0.返回主菜单"
                     read -p "请输入你的选择：" user_choice
+                    name=filecodebox
                     port=8060
                     case $user_choice in
                         1)                           
