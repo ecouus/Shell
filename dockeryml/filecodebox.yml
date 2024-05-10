@@ -5,6 +5,6 @@ services:
         ports:
             - 8060:12345     #左边的8060可以随意更改成服务器上没有用过的端口
         volumes:
-            - ./data:/app/data
+            - /home/dc/filecodebox/data:/app/data
         container_name: filecodebox
         image: lanol/filecodebox:beta
