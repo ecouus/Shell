@@ -822,8 +822,10 @@ while true; do
                                 else
                                     echo "端口未被占用，可以继续执行"
                                 fi
-
-                            docker run -d --name wallos -v /home/dc/wallos/db:/var/www/html/db \
+                                
+                            docker pull bellamy/wallos:latest
+                            docker run -d --name wallos \
+                            -v /home/dc/wallos/db:/var/www/html/db \
                             -v /home/dc/wallos/logos:/var/www/html/images/uploads/logos \
                             -e TZ=Europe/Berlin -p 8282:80 --restart unless-stopped \
                             bellamy/wallos:latest
