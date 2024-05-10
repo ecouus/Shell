@@ -97,7 +97,7 @@ while true; do
     echo "5.Nginx Proxy Manager     6.兰空图床"
     echo "7.Filecodebox             8.Wallos  "
     echo " "  
-    echo "0.退出脚本   9.更新脚本"
+    echo "0.退出脚本   88.更新脚本"
     read -p "请输入你的选择：" choice
         case $choice in
             docker)
@@ -879,7 +879,7 @@ while true; do
                 clear
                 exit
                 ;;
-            9)
+            88)
                 renew
                 ;;
             *)
