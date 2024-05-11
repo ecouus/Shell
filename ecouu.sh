@@ -901,7 +901,7 @@ while true; do
                                 echo "------------------------"
                                 echo "菜单栏："
                                 echo "------------------------"
-                                echo "1.安装项目     2.删除项目"
+                                echo "1.安装项目     2.删除项目     3.迁移项目"
                                 echo "0.返回主菜单"
                                 read -p "请输入你的选择：" user_choice
                                 name=linkding
@@ -973,6 +973,39 @@ while true; do
                                         read -n 1 -s -r -p "按任意键返回"
                                         echo  # 添加一个新行作为输出的一部分
                                         ;;
+                                    3)
+                                        install_docker
+                                        iptables_open                     
+                                        # 检查名为sun-panel的容器是否存在
+                                        container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                                        if [ "$container_exists" = "$name" ]; then
+                                            echo "已安装"
+                                        else
+                                            
+                                            # 初始化端口占用信息变量
+                                            ports_to_check=$port
+                                            # 使用函数检查定义的端口数组
+                                            if ! check_ports "${ports_to_check[@]}"; then
+                                                exit 1  # 如果检查失败则退出
+                                            else
+                                                echo "端口未被占用，可以继续执行"
+                                            fi
+                                        docker pull sissbruecker/linkding:latest-plus
+                                        docker run --name linkding -p 9090:9090 \
+                                        -v /home/dc/linkding:/etc/linkding/data -d -e LD_CSRF_TRUSTED_ORIGINS="$full_domain" \
+                                        sissbruecker/linkding:latest-plus    
+                                        
+                                        fi
+
+                                        clear
+                                        check_ip_address
+                                        echo "$name已迁移成功 "
+                                        echo " "
+                                        echo "脚本运行完毕"
+                                        # 提示用户按任意键继续
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;     
                                     0)
                                         eco
                                         exit
