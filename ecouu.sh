@@ -3,7 +3,7 @@
 #yum update -y && yum install curl -y #CentOS/Fedora
 #apt-get update -y && apt-get install curl -y #Debian/Ubuntu
 #远程下载代码curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/ecouu.sh && sudo chmod +x ecouu.sh && ./ecouu.sh
-ln -sf ~/ecouu.sh /usr/local/bin/eco
+ln -sf ~/ecouu.sh /usr/local/bin/e
 
 check_ip_address() {
     local ipv4_address=$(curl -s --max-time 5 ipv4.ip.sb)
@@ -87,7 +87,7 @@ while true; do
      
     echo -e "\033[92mAuthor：Rational\033[0m"
     echo -e "\033[92mBlog：https://ecouu.com\033[0m"
-    echo "输入eco即可召唤此脚本"
+    echo "输入e即可召唤此脚本"
     echo "------------------------"
 
     echo -e "\033[38;5;208m菜单栏 \033[0m"
@@ -1000,7 +1000,7 @@ while true; do
                 while true; do
                 clear
                 echo "此页面脚本均收集自网络 请此行甄别"
-                echo "1.KejilionMod                2.IPQuality(xykt)"
+                echo "1.KejilionMod(二开版)               2.IPQuality(xykt)"
                 echo "3.可视化路由查询(sjlleo)          "
                 echo " "  
                 echo "0.返回主菜单   "
