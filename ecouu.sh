@@ -92,892 +92,953 @@ while true; do
 
     echo -e "\033[38;5;208m菜单栏 \033[0m"
     echo "------------------------"
-    echo "1.PersonalPage            2.homepage     "
-    echo "3.sun-panel               4.memos   "
-    echo "5.Nginx Proxy Manager     6.兰空图床"
-    echo "7.Filecodebox             8.Wallos  "
-    echo "9.Linkding             "
-    echo " "  
-    echo "0.退出脚本   88.更新脚本"
+    echo "1.Docker百宝箱     2.工具箱 "
+    echo " "
+    echo "0.退出脚本         88.更新脚本"
     read -p "请输入你的选择：" choice
         case $choice in
-            docker)
-                install_docker
-                ;;
-            1)
+            1)   
                 while true; do
-                    clear
-                    echo -e "\033[38;5;208m'PersonalPage' \033[0m"
-                    echo "源码：https://github.com/DoWake/PersonalPage"
-                    echo "------------------------"
-                    echo "菜单栏："
-                    echo "------------------------"
-                    echo "1.安装项目     2.删除项目"
-                    echo "0.返回主菜单"
-                    read -p "请输入你的选择：" user_choice
-                    name=PersonalPage
-                    port=8899
-                    case $user_choice in
-                        1)
+                clear
+                echo -e "\033[92mDocker百宝箱\033[0m"
+                echo "1.PersonalPage            2.homepage     "
+                echo "3.sun-panel               4.memos   "
+                echo "5.Nginx Proxy Manager     6.兰空图床"
+                echo "7.Filecodebox             8.Wallos  "
+                echo "9.Linkding             "
+                echo " "  
+                echo "0.返回主菜单   "
+                read -p "请输入你的选择：" choice
+                    case $choice in
+                        docker)
                             install_docker
-                            iptables_open
-
-                            # 检查名为PersonalPage的容器是否存在
-                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
-                            if [ "$container_exists" = "$name" ]; then
-                                echo "已安装"
-                            else
-                                DIR="/home/dc/$name"
-                                # 检查目录是否存在
-                                if [ -d "$DIR" ]; then
-                                    echo "Directory $DIR already exists."
-                                else
-                                    echo "Creating directory $DIR."
-                                    mkdir -p "$DIR"
-                                fi
-
-                                # 导航到目录
-                                cd "$DIR"
-
-                                # 定义GitHub仓库zip文件的URL
-                                ZIP_URL="https://github.com/DoWake/PersonalPage/archive/refs/heads/main.zip"
-                                ZIP_FILE="${DIR}/$name.zip"
-
-                                # 下载zip文件
-                                echo "Downloading the zip file from $ZIP_URL..."
-                                wget -O "$ZIP_FILE" "$ZIP_URL"
-
-                                # 解压zip文件
-                                echo "Unzipping the file..."
-                                unzip -o "$ZIP_FILE" -d "$DIR"
-
-                                EXTRACTED_DIR="${DIR}/$name-main"
-                                if [ -d "$EXTRACTED_DIR" ]; then
-                                    mv -v "$EXTRACTED_DIR"/* "$DIR/"
-                                    rmdir "$EXTRACTED_DIR"
-                                fi
-
-                                # 删除zip文件
-                                echo "Removing the zip file..."
-                                rm -f "$ZIP_FILE"
-                                echo "Setup completed."
-                                
-                                # 初始化端口占用信息变量
-                                ports_to_check=$port
-                                # 使用函数检查定义的端口数组
-                                if ! check_ports "${ports_to_check[@]}"; then
-                                    exit 1  # 如果检查失败则退出
-                                else
-                                    echo "端口未被占用，可以继续执行"
-                                fi
-
-                                # 运行Docker容器
-                                docker run -d \
-                                    -p $port:80 \
-                                    --name $name \
-                                    -v /home/dc/$name/:/usr/share/nginx/html \
-                                    nginx:alpine
-
-                                docker exec $name nginx -t
-                                docker exec $name nginx -s reload
-                            fi
-                        
-                            clear
-                            check_ip_address
-                            echo "$name已搭建 "
-                            echo "http://$ip_address:$port"
-                            echo " "
-                            echo "html路径为/home/dc/$name/"
-                            echo "请自行配置html"
-                            echo " "
-                            # 提示用户按任意键继续
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
                             ;;
+                        1)
+                            while true; do
+                                clear
+                                echo -e "\033[38;5;208m'PersonalPage' \033[0m"
+                                echo "源码：https://github.com/DoWake/PersonalPage"
+                                echo "------------------------"
+                                echo "菜单栏："
+                                echo "------------------------"
+                                echo "1.安装项目     2.删除项目"
+                                echo "0.返回主菜单"
+                                read -p "请输入你的选择：" user_choice
+                                name=PersonalPage
+                                port=8899
+                                case $user_choice in
+                                    1)
+                                        install_docker
+                                        iptables_open
+
+                                        # 检查名为PersonalPage的容器是否存在
+                                        container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                                        if [ "$container_exists" = "$name" ]; then
+                                            echo "已安装"
+                                        else
+                                            DIR="/home/dc/$name"
+                                            # 检查目录是否存在
+                                            if [ -d "$DIR" ]; then
+                                                echo "Directory $DIR already exists."
+                                            else
+                                                echo "Creating directory $DIR."
+                                                mkdir -p "$DIR"
+                                            fi
+
+                                            # 导航到目录
+                                            cd "$DIR"
+
+                                            # 定义GitHub仓库zip文件的URL
+                                            ZIP_URL="https://github.com/DoWake/PersonalPage/archive/refs/heads/main.zip"
+                                            ZIP_FILE="${DIR}/$name.zip"
+
+                                            # 下载zip文件
+                                            echo "Downloading the zip file from $ZIP_URL..."
+                                            wget -O "$ZIP_FILE" "$ZIP_URL"
+
+                                            # 解压zip文件
+                                            echo "Unzipping the file..."
+                                            unzip -o "$ZIP_FILE" -d "$DIR"
+
+                                            EXTRACTED_DIR="${DIR}/$name-main"
+                                            if [ -d "$EXTRACTED_DIR" ]; then
+                                                mv -v "$EXTRACTED_DIR"/* "$DIR/"
+                                                rmdir "$EXTRACTED_DIR"
+                                            fi
+
+                                            # 删除zip文件
+                                            echo "Removing the zip file..."
+                                            rm -f "$ZIP_FILE"
+                                            echo "Setup completed."
+                                            
+                                            # 初始化端口占用信息变量
+                                            ports_to_check=$port
+                                            # 使用函数检查定义的端口数组
+                                            if ! check_ports "${ports_to_check[@]}"; then
+                                                exit 1  # 如果检查失败则退出
+                                            else
+                                                echo "端口未被占用，可以继续执行"
+                                            fi
+
+                                            # 运行Docker容器
+                                            docker run -d \
+                                                -p $port:80 \
+                                                --name $name \
+                                                -v /home/dc/$name/:/usr/share/nginx/html \
+                                                nginx:alpine
+
+                                            docker exec $name nginx -t
+                                            docker exec $name nginx -s reload
+                                        fi
+                                    
+                                        clear
+                                        check_ip_address
+                                        echo "$name已搭建 "
+                                        echo "http://$ip_address:$port"
+                                        echo " "
+                                        echo "html路径为/home/dc/$name/"
+                                        echo "请自行配置html"
+                                        echo " "
+                                        # 提示用户按任意键继续
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;
+                                    2)
+                                        # 提示用户输入
+                                        echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
+                                        read answer
+                                        # 根据用户输入决定操作
+                                        case $answer in
+                                        y)
+                                            echo "Deleting..."
+                                            docker stop $name
+                                            docker rm $name
+                                            rm -rf /home/dc/$name
+                                            echo "Deleted."
+                                            ;;
+                                        n)
+                                            echo "Deleting..."  
+                                            docker stop $name
+                                            docker rm $name
+                                            echo "Docker项目已删除 挂载卷保留."
+                                            ;;
+                                        *)
+                                            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+                                            ;;
+                                        esac
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;
+                                    0)
+                                        eco
+                                        exit
+                                        ;;
+                                    *)
+                                        echo "无效输入"
+                                        sleep 1
+                                        ;; 
+                                esac           
+                            done
+                            ;;  
                         2)
-                            # 提示用户输入
-                            echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
-                            read answer
-                            # 根据用户输入决定操作
-                            case $answer in
-                            y)
-                                echo "Deleting..."
-                                docker stop $name
-                                docker rm $name
-                                rm -rf /home/dc/$name
-                                echo "Deleted."
-                                ;;
-                            n)
-                                echo "Deleting..."  
-                                docker stop $name
-                                docker rm $name
-                                echo "Docker项目已删除 挂载卷保留."
-                                ;;
-                            *)
-                                echo "Invalid input. Please enter 'y' for yes or 'n' for no."
-                                ;;
-                            esac
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
+                            while true; do
+                                clear
+                                echo -e "\033[38;5;208m'homepage' \033[0m"
+                                echo "源码：https://github.com/ZYYO666/homepage/archive/refs/heads/main.zip"
+                                echo "------------------------"
+                                echo "菜单栏："
+                                echo "------------------------"
+                                echo "1.安装项目     2.删除项目"
+                                echo "0.返回主菜单"
+                                read -p "请输入你的选择：" user_choice
+                                name=homepage
+                                port=6292
+                                case $user_choice in
+                                    1)
+                                        install_docker
+                                        iptables_open
+                                        
+                                        # 检查名为homepage的容器是否存在
+                                        container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                                        if [ "$container_exists" = "$name" ]; then
+                                            echo "已安装"
+                                        else
+                                            DIR="/home/dc/$name"
+                                            # 检查目录是否存在
+                                            if [ -d "$DIR" ]; then
+                                                echo "Directory $DIR already exists."
+                                            else
+                                                echo "Creating directory $DIR."
+                                                mkdir -p "$DIR"
+                                            fi
+
+                                            # 导航到目录
+                                            cd "$DIR"
+
+                                            # 定义GitHub仓库zip文件的URL
+                                            ZIP_URL="https://github.com/ZYYO666/homepage/archive/refs/heads/main.zip"
+                                            ZIP_FILE="${DIR}/$name.zip"
+
+                                            # 下载zip文件
+                                            echo "Downloading the zip file from $ZIP_URL..."
+                                            wget -O "$ZIP_FILE" "$ZIP_URL"
+
+                                            # 解压zip文件
+                                            echo "Unzipping the file..."
+                                            unzip -o "$ZIP_FILE" -d "$DIR"
+
+                                            EXTRACTED_DIR="${DIR}/$name-main"
+                                            if [ -d "$EXTRACTED_DIR" ]; then
+                                                mv -v "$EXTRACTED_DIR"/* "$DIR/"
+                                                rmdir "$EXTRACTED_DIR"
+                                            fi
+
+                                            # 删除zip文件
+                                            echo "Removing the zip file..."
+                                            rm -f "$ZIP_FILE"
+                                            echo "Setup completed."
+                                            
+                                            # 初始化端口占用信息变量
+                                            ports_to_check=$port
+                                            # 使用函数检查定义的端口数组
+                                            if ! check_ports "${ports_to_check[@]}"; then
+                                                exit 1  # 如果检查失败则退出
+                                            else
+                                                echo "端口未被占用，可以继续执行"
+                                            fi
+
+                                            # 运行Docker容器
+                                            docker run -d \
+                                                -p $port:80 \
+                                                --name $name \
+                                                -v /home/dc/$name/:/usr/share/nginx/html \
+                                                nginx:alpine
+
+                                            docker exec $name nginx -t
+                                            docker exec $name nginx -s reload
+                                        fi      
+
+                                        clear
+                                        check_ip_address
+                                        echo "$name已搭建 "
+                                        echo "http://$ip_address:$port"
+                                        echo " "
+                                        echo "html路径为/home/dc/$name/"
+                                        echo "请自行配置html"
+                                        echo " "
+                                        # 提示用户按任意键继续
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;
+                                    2)
+                                        # 提示用户输入
+                                        echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
+                                        read answer
+                                        # 根据用户输入决定操作
+                                        case $answer in
+                                        y)
+                                            echo "Deleting..."
+                                            docker stop $name
+                                            docker rm $name
+                                            rm -rf /home/dc/$name
+                                            echo "Deleted."
+                                            ;;
+                                        n)
+                                            echo "Deleting..."  
+                                            docker stop $name
+                                            docker rm $name
+                                            echo "Docker项目已删除 挂载卷保留."
+                                            ;;
+                                        *)
+                                            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+                                            ;;
+                                        esac
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;
+                                    0)
+                                        eco
+                                        exit
+                                        ;;
+                                    *)
+                                        echo "无效输入"
+                                        sleep 1
+                                        ;; 
+                                esac           
+                            done
+                            ;;    
+                        3)
+                            while true; do
+                            clear
+                                echo -e "\033[38;5;208m'sun-panel' \033[0m"
+                                echo "源码：https://github.com/hslr-s/sun-panel"
+                                echo "------------------------"
+                                echo "菜单栏："
+                                echo "------------------------"
+                                echo "1.安装项目     2.删除项目"
+                                echo "0.返回主菜单"
+                                read -p "请输入你的选择：" user_choice
+                                name=sun-panel
+                                port=3002
+                                case $user_choice in
+                                    1)
+                                        install_docker
+                                        iptables_open                     
+                                        # 检查名为sun-panel的容器是否存在
+                                        container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                                        if [ "$container_exists" = "$name" ]; then
+                                            echo "已安装"
+                                        else
+                                            
+                                            # 初始化端口占用信息变量
+                                            ports_to_check=$port
+                                            # 使用函数检查定义的端口数组
+                                            if ! check_ports "${ports_to_check[@]}"; then
+                                                exit 1  # 如果检查失败则退出
+                                            else
+                                                echo "端口未被占用，可以继续执行"
+                                            fi
+
+                                            docker pull hslr/sun-panel
+                                            docker run -d --restart=always -p $port:3002 \
+                                            -v /home/dc/$name/conf:/app/conf \
+                                            -v /home/dc/$name/uploads:/app/uploads \
+                                            -v /home/dc/$name/database:/app/database \
+                                            --name $name \
+                                            hslr/sun-panel
+                                        fi
+
+                                        clear
+                                        check_ip_address
+                                        echo "$name已搭建 "
+                                        echo "http://$ip_address:$port"
+                                        echo "默认账号：admin@sun.cc"
+                                        echo "默认密码：12345678"
+                                        echo " "
+                                        echo "脚本运行完毕"
+                                        # 提示用户按任意键继续
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;                   
+                                    2)
+                                        # 提示用户输入
+                                        echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
+                                        read answer
+                                        # 根据用户输入决定操作
+                                        case $answer in
+                                        y)
+                                            echo "Deleting..."
+                                            docker stop $name
+                                            docker rm $name
+                                            rm -rf /home/dc/$name
+                                            echo "Deleted."
+                                            ;;
+                                        n)
+                                            echo "Deleting..."  
+                                            docker stop $name
+                                            docker rm $name
+                                            echo "Docker项目已删除 挂载卷保留."
+                                            ;;
+                                        *)
+                                            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+                                            ;;
+                                        esac
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;
+                                    0)
+                                        eco
+                                        exit
+                                        ;;   
+                                    *)
+                                        echo "无效输入"
+                                        sleep 1
+                                        ;;
+                                esac
+                            done
                             ;;
-                        0)
+                        4)
+                            while true; do
+                                clear
+                                echo -e "\033[38;5;208m'Memos' \033[0m"
+                                echo "1.安装   2.卸载"                   
+                                echo "0.返回主菜单"
+                                read -p "请输入你的选择：" user_choice
+                                name=memos
+                                port=5230
+                                case $user_choice in
+                                    1)
+                                        install_docker
+                                        iptables_open                     
+                                        # 检查名为memos的容器是否存在
+                                        container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                                        if [ "$container_exists" = "$name" ]; then
+                                            echo "已安装"
+                                        else
+                                            
+                                            # 初始化端口占用信息变量
+                                            ports_to_check=$port
+                                            # 使用函数检查定义的端口数组
+                                            if ! check_ports "${ports_to_check[@]}"; then
+                                                exit 1  # 如果检查失败则退出
+                                            else
+                                                echo "端口未被占用，可以继续执行"
+                                            fi
+                                            docker pull neosmemo/memos:latest
+                                            docker run -d --restart=always -p $port:5230 \
+                                            -v /home/dc/$name:/var/opt/memos \
+                                            --name $name \
+                                            neosmemo/memos:latest
+                                        fi
+
+                                        clear
+                                        check_ip_address
+                                        echo "$name已搭建 "
+                                        echo "http://$ip_address:$port"
+                                        echo " "
+                                        echo "脚本运行完毕"
+                                        # 提示用户按任意键继续
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;                   
+                                    2)
+                                        # 提示用户输入
+                                        echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
+                                        read answer
+                                        # 根据用户输入决定操作
+                                        case $answer in
+                                        y)
+                                            echo "Deleting..."
+                                            docker stop $name
+                                            docker rm $name
+                                            rm -rf /home/dc/$name
+                                            echo "Deleted."
+                                            ;;
+                                        n)
+                                            echo "Deleting..."  
+                                            docker stop $name
+                                            docker rm $name
+                                            echo "Docker项目已删除 挂载卷保留."
+                                            ;;
+                                        *)
+                                            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+                                            ;;
+                                        esac
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;
+                                    0)
+                                        eco
+                                        exit
+                                        ;;   
+                                    *)
+                                        echo "无效输入"
+                                        sleep 1
+                                        ;;
+                                esac
+                            done
+                            ;;               
+
+                        5)
+                            while true; do
+                            clear
+                                echo -e "\033[38;5;208m'Nginx Proxy Manager' \033[0m"
+                                echo "请确保未安装nginx或已停止nginx后再进行安装 并释放80和443端口"
+                                echo "1.安装   2.卸载   3.更新"                   
+                                echo "0.返回主菜单"
+                                read -p "请输入你的选择：" user_choice
+                                port=81
+                                case $user_choice in
+                                    1)                           
+                                        install_docker
+                                        iptables_open
+                                        # 初始化端口占用信息变量
+                                        ports_to_check=(80 443)
+                                        # 使用函数检查定义的端口数组
+                                        if ! check_ports "${ports_to_check[@]}"; then
+                                            exit 1  # 如果检查失败则退出
+                                        else
+                                            echo "端口未被占用，可以继续执行"
+                                        fi
+
+                                        container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "npm-app-1")
+                                        if [ "$container_exists" = "npm-app-1" ]; then
+                                            echo "npm-app-1容器已存在"
+                                        else
+            
+                                            curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/daemon.json -o /etc/docker/daemon.json
+                                            sudo systemctl reload docker
+                                            mkdir -p /home/dc/npm
+                                            curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/npm.yml -o /home/dc/npm/docker-compose.yml
+                                            cd /home/dc/npm   # 来到 docker-compose 文件所在的文件夹下
+                                            docker-compose up -d
+                                        fi
+
+                                        clear
+                                        check_ip_address
+                                        echo "Nginx Proxy Manager已搭建 "
+                                        echo "http://$ip_address:81"
+                                        echo "默认账号：admin@example.com"
+                                        echo "默认密码：changeme"
+                                        echo " "
+                                        echo "脚本运行完毕"
+                                        # 提示用户按任意键继续
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;   
+                                    2)
+                                        # 提示用户输入
+                                        echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
+                                        read answer
+                                        # 根据用户输入决定操作
+                                        case $answer in
+                                        y)
+                                            echo "Deleting..."
+                                            docker stop $name
+                                            docker rm $name
+                                            rm -rf /home/dc/$name
+                                            echo "Deleted."
+                                            ;;
+                                        n)
+                                            echo "Deleting..."  
+                                            docker stop $name
+                                            docker rm $name
+                                            echo "Docker项目已删除 挂载卷保留."
+                                            ;;
+                                        *)
+                                            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+                                            ;;
+                                        esac
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;
+                                    3)
+                                        cd /home/dc/npm
+                                        docker-compose pull
+                                        docker-compose up -d
+                                        docker image prune
+                                        ;;
+                                    0)
+                                        eco
+                                        exit
+                                        ;;   
+                                    *)
+                                        echo "无效输入"
+                                        sleep 1
+                                        ;;              
+                                esac
+                            done
+                            ;;
+                        6)
+                            while true; do
+                            clear
+                                echo -e "\033[38;5;208m'兰空图床lsky-pro' \033[0m"
+                                echo "1.安装   2.卸载   3.更新"                   
+                                echo "0.返回主菜单"
+                                read -p "请输入你的选择：" user_choice
+                                port=7791
+                                case $user_choice in
+                                    1)                           
+                                        install_docker
+                                        iptables_open
+                                        # 初始化端口占用信息变量
+                                        ports_to_check=7791
+                                        # 使用函数检查定义的端口数组
+                                        if ! check_ports "${ports_to_check[@]}"; then
+                                            exit 1  # 如果检查失败则退出
+                                        else
+                                            echo "端口未被占用，可以继续执行"
+                                        fi
+
+                                        container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "lsky-pro")
+                                        if [ "$container_exists" = "lsky-pro" ]; then
+                                            echo "lsky-pro容器已存在"
+                                        else
+
+                                            mkdir -p /home/dc/lsky-pro
+                                            curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/lsky-pro.yml -o /home/dc/lsky-pro/docker-compose.yml
+                                            cd /home/dc/lsky-pro   # 来到 docker-compose 文件所在的文件夹下
+                                            docker-compose up -d
+                                        fi
+
+                                        clear
+                                        check_ip_address
+                                        echo "Nginx Proxy Manager已搭建 "
+                                        echo "http://$ip_address:$port"
+                                        echo "数据库地址：lsky-pro-db"
+                                        echo "数据库链接端口留空"
+                                        echo "数据库名称/路径、数据库用户名、密码：lsky-pro"
+                                        echo " "
+                                        echo "脚本运行完毕"
+                                        # 提示用户按任意键继续
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;   
+                                    2)
+                                        # 提示用户输入
+                                        echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
+                                        read answer
+                                        # 根据用户输入决定操作
+                                        case $answer in
+                                        y)
+                                            echo "Deleting..."
+                                            docker stop $name
+                                            docker rm $name
+                                            rm -rf /home/dc/$name
+                                            echo "Deleted."
+                                            ;;
+                                        n)
+                                            echo "Deleting..."  
+                                            docker stop $name
+                                            docker rm $name
+                                            echo "Docker项目已删除 挂载卷保留."
+                                            ;;
+                                        *)
+                                            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+                                            ;;
+                                        esac
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;
+                                    3)
+                                        cd /home/dc/lsky-pro
+                                        docker-compose pull
+                                        docker-compose up -d
+                                        docker image prune
+                                        ;;
+                                    0)
+                                        eco
+                                        exit
+                                        ;;   
+                                    *)
+                                        echo "无效输入"
+                                        sleep 1
+                                        ;;              
+                                esac
+                            done
+                            ;;
+                        7)
+                            while true; do
+                            clear
+                                echo -e "\033[38;5;208m'文件快递柜Filecodebox' \033[0m"
+                                echo "1.安装   2.卸载   3.更新"                   
+                                echo "0.返回主菜单"
+                                read -p "请输入你的选择：" user_choice
+                                name=filecodebox
+                                port=8060
+                                case $user_choice in
+                                    1)                           
+                                        install_docker
+                                        iptables_open
+                                        # 初始化端口占用信息变量
+                                        ports_to_check=8060
+                                        # 使用函数检查定义的端口数组
+                                        if ! check_ports "${ports_to_check[@]}"; then
+                                            exit 1  # 如果检查失败则退出
+                                        else
+                                            echo "端口未被占用，可以继续执行"
+                                        fi
+
+                                        container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "filecodebox")
+                                        if [ "$container_exists" = "filecodebox" ]; then
+                                            echo "filecodebox容器已存在"
+                                        else
+
+                                            mkdir -p /home/dc/filecodebox
+                                            curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/filecodebox.yml -o /home/dc/filecodebox/docker-compose.yml
+                                            cd /home/dc/filecodebox   # 来到 docker-compose 文件所在的文件夹下
+                                            docker-compose up -d
+                                        fi
+
+                                        clear
+                                        check_ip_address
+                                        echo "文件快递柜已搭建 "
+                                        echo "http://$ip_address:$port"
+                                        echo "后台：http://$ip_address:$port/#/admin"
+                                        echo "后台默认密码：FileCodeBox2023"
+                                        echo " "
+                                        echo "脚本运行完毕"
+                                        # 提示用户按任意键继续
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;   
+                                    2)
+                                        # 提示用户输入
+                                        echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
+                                        read answer
+                                        # 根据用户输入决定操作
+                                        case $answer in
+                                        y)
+                                            echo "Deleting..."
+                                            docker stop $name
+                                            docker rm $name
+                                            rm -rf /home/dc/$name
+                                            echo "Deleted."
+                                            ;;
+                                        n)
+                                            echo "Deleting..."  
+                                            docker stop $name
+                                            docker rm $name
+                                            echo "Docker项目已删除 挂载卷保留."
+                                            ;;
+                                        *)
+                                            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+                                            ;;
+                                        esac
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;
+                                    3)
+                                        cd /home/dc/filecodebox
+                                        docker-compose pull
+                                        docker-compose up -d
+                                        docker image prune
+                                        ;;
+                                    0)
+                                        eco
+                                        exit
+                                        ;;   
+                                    *)
+                                        echo "无效输入"
+                                        sleep 1
+                                        ;;              
+                                esac
+                            done
+                            ;;
+                        8)
+                            while true; do
+                            clear
+                                echo -e "\033[38;5;208m'订阅管理系统Wallos' \033[0m"
+                                echo "源码：https://github.com/ellite/Wallos"
+                                echo "------------------------"
+                                echo "菜单栏："
+                                echo "------------------------"
+                                echo "1.安装项目     2.删除项目"
+                                echo "0.返回主菜单"
+                                read -p "请输入你的选择：" user_choice
+                                name=wallos
+                                port=8282
+                                case $user_choice in
+                                    1)
+                                        install_docker
+                                        iptables_open                     
+                                        # 检查名为sun-panel的容器是否存在
+                                        container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                                        if [ "$container_exists" = "$name" ]; then
+                                            echo "已安装"
+                                        else
+                                            
+                                            # 初始化端口占用信息变量
+                                            ports_to_check=$port
+                                            # 使用函数检查定义的端口数组
+                                            if ! check_ports "${ports_to_check[@]}"; then
+                                                exit 1  # 如果检查失败则退出
+                                            else
+                                                echo "端口未被占用，可以继续执行"
+                                            fi
+                                            
+                                        docker pull bellamy/wallos:latest
+                                        docker run -d --name wallos \
+                                        -v /home/dc/wallos/db:/var/www/html/db \
+                                        -v /home/dc/wallos/logos:/var/www/html/images/uploads/logos \
+                                        -e TZ=Europe/Berlin -p 8282:80 --restart unless-stopped \
+                                        bellamy/wallos:latest
+
+                                        fi
+
+                                        clear
+                                        check_ip_address
+                                        echo "$name已搭建 "
+                                        echo "http://$ip_address:$port"
+                                        echo " "
+                                        echo "脚本运行完毕"
+                                        # 提示用户按任意键继续
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;                   
+                                    2)
+                                        # 提示用户输入
+                                        echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
+                                        read answer
+                                        # 根据用户输入决定操作
+                                        case $answer in
+                                        y)
+                                            echo "Deleting..."
+                                            docker stop $name
+                                            docker rm $name
+                                            rm -rf /home/dc/$name
+                                            echo "Deleted."
+                                            ;;
+                                        n)
+                                            echo "Deleting..."  
+                                            docker stop $name
+                                            docker rm $name
+                                            echo "Docker项目已删除 挂载卷保留."
+                                            ;;
+                                        *)
+                                            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+                                            ;;
+                                        esac
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;
+                                    0)
+                                        eco
+                                        exit
+                                        ;;   
+                                    *)
+                                        echo "无效输入"
+                                        sleep 1
+                                        ;;
+                                esac
+                            done
+                            ;;
+                        9)
+                            while true; do
+                            clear
+                                echo -e "\033[38;5;208m'标签管理Linkding' \033[0m"
+                                echo "源码：https://github.com/ellite/Wallos"
+                                echo "------------------------"
+                                echo "菜单栏："
+                                echo "------------------------"
+                                echo "1.安装项目     2.删除项目"
+                                echo "0.返回主菜单"
+                                read -p "请输入你的选择：" user_choice
+                                name=linkding
+                                port=9090
+                                case $user_choice in
+                                    1)
+                                        install_docker
+                                        iptables_open                     
+                                        # 检查名为sun-panel的容器是否存在
+                                        container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                                        if [ "$container_exists" = "$name" ]; then
+                                            echo "已安装"
+                                        else
+                                            
+                                            # 初始化端口占用信息变量
+                                            ports_to_check=$port
+                                            # 使用函数检查定义的端口数组
+                                            if ! check_ports "${ports_to_check[@]}"; then
+                                                exit 1  # 如果检查失败则退出
+                                            else
+                                                echo "端口未被占用，可以继续执行"
+                                            fi
+                                        read -p $'\033[0;32m请输入域名(确保已反代至本机IP:9090):\033[0m' domain
+                                        full_domain="https://$domain"
+                                        read -p $'\033[0;32m请输入面板用户名:\033[0m' username
+                                        read -p $'\033[0;32m请输入面板邮箱:\033[0m' email
+                                        docker pull sissbruecker/linkding:latest-plus
+                                        docker run --name linkding -p 9090:9090 \
+                                        -v /home/dc/linkding:/etc/linkding/data -d -e LD_CSRF_TRUSTED_ORIGINS="$full_domain" \
+                                        sissbruecker/linkding:latest-plus    
+                                        sleep 5
+                                        docker exec -it linkding python manage.py createsuperuser --username="$username" --email="$email"
+                                        
+                                        fi
+
+                                        clear
+                                        check_ip_address
+                                        echo "$name已搭建 "
+                                        echo "$full_domain"
+                                        echo " "
+                                        echo "脚本运行完毕"
+                                        # 提示用户按任意键继续
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;                   
+                                    2)
+                                        # 提示用户输入
+                                        echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
+                                        read answer
+                                        # 根据用户输入决定操作
+                                        case $answer in
+                                        y)
+                                            echo "Deleting..."
+                                            docker stop $name
+                                            docker rm $name
+                                            rm -rf /home/dc/$name
+                                            echo "Deleted."
+                                            ;;
+                                        n)
+                                            echo "Deleting..."  
+                                            docker stop $name
+                                            docker rm $name
+                                            echo "Docker项目已删除 挂载卷保留."
+                                            ;;
+                                        *)
+                                            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+                                            ;;
+                                        esac
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;
+                                    0)
+                                        eco
+                                        exit
+                                        ;;   
+                                    *)
+                                        echo "无效输入"
+                                        sleep 1
+                                        ;;
+                                esac
+                            done
+                            ;;
+                        0)  
                             eco
+                            clear
                             exit
                             ;;
                         *)
                             echo "无效输入"
+                            sleep 1                         
+                            ;;
+                    esac 
+                done
+                ;;
+            2)  
+                while true; do
+                clear
+                echo "此页面脚本均收集自网络 请此行甄别"
+                echo "1.KejilionMod                2.IPQuality(xykt)"
+                echo "3.可视化路由查询(sjlleo)          "
+                echo " "  
+                echo "0.返回主菜单   "
+                read -p "请输入你的选择：" choice
+                    case $choice in          
+                        1)
+                            curl -sS -O https://raw.githubusercontent.com/ecouus/kjlmod/main/LDNMP.sh && sudo chmod +x LDNMP.sh && ./LDNMP.sh
+                            ;;  
+                        2)
+                            bash <(curl -sL IP.Check.Place)
+                            ;;  
+                        3)
+                            bash <(curl -Ls https://raw.githubusercontent.com/sjlleo/nexttrace/main/nt_install.sh)
                             ;; 
-                    esac           
-                done
-                ;;  
-            2)
-                while true; do
-                    clear
-                    echo -e "\033[38;5;208m'homepage' \033[0m"
-                    echo "源码：https://github.com/ZYYO666/homepage/archive/refs/heads/main.zip"
-                    echo "------------------------"
-                    echo "菜单栏："
-                    echo "------------------------"
-                    echo "1.安装项目     2.删除项目"
-                    echo "0.返回主菜单"
-                    read -p "请输入你的选择：" user_choice
-                    name=homepage
-                    port=6292
-                    case $user_choice in
-                        1)
-                            install_docker
-                            iptables_open
-                            
-                            # 检查名为homepage的容器是否存在
-                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
-                            if [ "$container_exists" = "$name" ]; then
-                                echo "已安装"
-                            else
-                                DIR="/home/dc/$name"
-                                # 检查目录是否存在
-                                if [ -d "$DIR" ]; then
-                                    echo "Directory $DIR already exists."
-                                else
-                                    echo "Creating directory $DIR."
-                                    mkdir -p "$DIR"
-                                fi
-
-                                # 导航到目录
-                                cd "$DIR"
-
-                                # 定义GitHub仓库zip文件的URL
-                                ZIP_URL="https://github.com/ZYYO666/homepage/archive/refs/heads/main.zip"
-                                ZIP_FILE="${DIR}/$name.zip"
-
-                                # 下载zip文件
-                                echo "Downloading the zip file from $ZIP_URL..."
-                                wget -O "$ZIP_FILE" "$ZIP_URL"
-
-                                # 解压zip文件
-                                echo "Unzipping the file..."
-                                unzip -o "$ZIP_FILE" -d "$DIR"
-
-                                EXTRACTED_DIR="${DIR}/$name-main"
-                                if [ -d "$EXTRACTED_DIR" ]; then
-                                    mv -v "$EXTRACTED_DIR"/* "$DIR/"
-                                    rmdir "$EXTRACTED_DIR"
-                                fi
-
-                                # 删除zip文件
-                                echo "Removing the zip file..."
-                                rm -f "$ZIP_FILE"
-                                echo "Setup completed."
-                                
-                                # 初始化端口占用信息变量
-                                ports_to_check=$port
-                                # 使用函数检查定义的端口数组
-                                if ! check_ports "${ports_to_check[@]}"; then
-                                    exit 1  # 如果检查失败则退出
-                                else
-                                    echo "端口未被占用，可以继续执行"
-                                fi
-
-                                # 运行Docker容器
-                                docker run -d \
-                                    -p $port:80 \
-                                    --name $name \
-                                    -v /home/dc/$name/:/usr/share/nginx/html \
-                                    nginx:alpine
-
-                                docker exec $name nginx -t
-                                docker exec $name nginx -s reload
-                            fi      
-
-                            clear
-                            check_ip_address
-                            echo "$name已搭建 "
-                            echo "http://$ip_address:$port"
-                            echo " "
-                            echo "html路径为/home/dc/$name/"
-                            echo "请自行配置html"
-                            echo " "
-                            # 提示用户按任意键继续
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;
-                        2)
-                            # 提示用户输入
-                            echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
-                            read answer
-                            # 根据用户输入决定操作
-                            case $answer in
-                            y)
-                                echo "Deleting..."
-                                docker stop $name
-                                docker rm $name
-                                rm -rf /home/dc/$name
-                                echo "Deleted."
-                                ;;
-                            n)
-                                echo "Deleting..."  
-                                docker stop $name
-                                docker rm $name
-                                echo "Docker项目已删除 挂载卷保留."
-                                ;;
-                            *)
-                                echo "Invalid input. Please enter 'y' for yes or 'n' for no."
-                                ;;
-                            esac
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;
-                        0)
+                        0)  
                             eco
-                            exit
-                            ;;
-                        *)
-                            echo "无效输入"
-                            ;; 
-                    esac           
-                done
-                ;;    
-            3)
-                while true; do
-                clear
-                    echo -e "\033[38;5;208m'sun-panel' \033[0m"
-                    echo "源码：https://github.com/hslr-s/sun-panel"
-                    echo "------------------------"
-                    echo "菜单栏："
-                    echo "------------------------"
-                    echo "1.安装项目     2.删除项目"
-                    echo "0.返回主菜单"
-                    read -p "请输入你的选择：" user_choice
-                    name=sun-panel
-                    port=3002
-                    case $user_choice in
-                        1)
-                            install_docker
-                            iptables_open                     
-                            # 检查名为sun-panel的容器是否存在
-                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
-                            if [ "$container_exists" = "$name" ]; then
-                                echo "已安装"
-                            else
-                                
-                                # 初始化端口占用信息变量
-                                ports_to_check=$port
-                                # 使用函数检查定义的端口数组
-                                if ! check_ports "${ports_to_check[@]}"; then
-                                    exit 1  # 如果检查失败则退出
-                                else
-                                    echo "端口未被占用，可以继续执行"
-                                fi
-
-                                docker pull hslr/sun-panel
-                                docker run -d --restart=always -p $port:3002 \
-                                -v /home/dc/$name/conf:/app/conf \
-                                -v /home/dc/$name/uploads:/app/uploads \
-                                -v /home/dc/$name/database:/app/database \
-                                --name $name \
-                                hslr/sun-panel
-                            fi
-
                             clear
-                            check_ip_address
-                            echo "$name已搭建 "
-                            echo "http://$ip_address:$port"
-                            echo "默认账号：admin@sun.cc"
-                            echo "默认密码：12345678"
-                            echo " "
-                            echo "脚本运行完毕"
-                            # 提示用户按任意键继续
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;                   
-                        2)
-                            # 提示用户输入
-                            echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
-                            read answer
-                            # 根据用户输入决定操作
-                            case $answer in
-                            y)
-                                echo "Deleting..."
-                                docker stop $name
-                                docker rm $name
-                                rm -rf /home/dc/$name
-                                echo "Deleted."
-                                ;;
-                            n)
-                                echo "Deleting..."  
-                                docker stop $name
-                                docker rm $name
-                                echo "Docker项目已删除 挂载卷保留."
-                                ;;
-                            *)
-                                echo "Invalid input. Please enter 'y' for yes or 'n' for no."
-                                ;;
-                            esac
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;
-                        0)
-                            eco
                             exit
                             ;;   
                         *)
                             echo "无效输入"
+                            sleep 1                         
                             ;;
                     esac
+                    read -n 1 -s -r -p "按任意键返回"
+                    echo  # 添加一个新行作为输出的一部分
                 done
                 ;;
-            4)
-                while true; do
-                    clear
-                    echo -e "\033[38;5;208m'Memos' \033[0m"
-                    echo "1.安装   2.卸载"                   
-                    echo "0.返回主菜单"
-                    read -p "请输入你的选择：" user_choice
-                    name=memos
-                    port=5230
-                    case $user_choice in
-                        1)
-                            install_docker
-                            iptables_open                     
-                            # 检查名为memos的容器是否存在
-                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
-                            if [ "$container_exists" = "$name" ]; then
-                                echo "已安装"
-                            else
-                                
-                                # 初始化端口占用信息变量
-                                ports_to_check=$port
-                                # 使用函数检查定义的端口数组
-                                if ! check_ports "${ports_to_check[@]}"; then
-                                    exit 1  # 如果检查失败则退出
-                                else
-                                    echo "端口未被占用，可以继续执行"
-                                fi
-                                docker pull neosmemo/memos:latest
-                                docker run -d --restart=always -p $port:5230 \
-                                -v /home/dc/$name:/var/opt/memos \
-                                --name $name \
-                                neosmemo/memos:latest
-                            fi
-
-                            clear
-                            check_ip_address
-                            echo "$name已搭建 "
-                            echo "http://$ip_address:$port"
-                            echo " "
-                            echo "脚本运行完毕"
-                            # 提示用户按任意键继续
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;                   
-                        2)
-                            # 提示用户输入
-                            echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
-                            read answer
-                            # 根据用户输入决定操作
-                            case $answer in
-                            y)
-                                echo "Deleting..."
-                                docker stop $name
-                                docker rm $name
-                                rm -rf /home/dc/$name
-                                echo "Deleted."
-                                ;;
-                            n)
-                                echo "Deleting..."  
-                                docker stop $name
-                                docker rm $name
-                                echo "Docker项目已删除 挂载卷保留."
-                                ;;
-                            *)
-                                echo "Invalid input. Please enter 'y' for yes or 'n' for no."
-                                ;;
-                            esac
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;
-                        0)
-                            eco
-                            exit
-                            ;;   
-                        *)
-                            echo "无效输入"
-                            ;;
-                    esac
-                done
-                ;;               
-
-            5)
-                while true; do
-                clear
-                    echo -e "\033[38;5;208m'Nginx Proxy Manager' \033[0m"
-                    echo "请确保未安装nginx或已停止nginx后再进行安装 并释放80和443端口"
-                    echo "1.安装   2.卸载   3.更新"                   
-                    echo "0.返回主菜单"
-                    read -p "请输入你的选择：" user_choice
-                    port=81
-                    case $user_choice in
-                        1)                           
-                            install_docker
-                            iptables_open
-                            # 初始化端口占用信息变量
-                            ports_to_check=(80 443)
-                            # 使用函数检查定义的端口数组
-                            if ! check_ports "${ports_to_check[@]}"; then
-                                exit 1  # 如果检查失败则退出
-                            else
-                                echo "端口未被占用，可以继续执行"
-                            fi
-
-                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "npm-app-1")
-                            if [ "$container_exists" = "npm-app-1" ]; then
-                                echo "npm-app-1容器已存在"
-                            else
- 
-                                curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/daemon.json -o /etc/docker/daemon.json
-                                sudo systemctl reload docker
-                                mkdir -p /home/dc/npm
-                                curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/npm.yml -o /home/dc/npm/docker-compose.yml
-                                cd /home/dc/npm   # 来到 docker-compose 文件所在的文件夹下
-                                docker-compose up -d
-                            fi
-
-                            clear
-                            check_ip_address
-                            echo "Nginx Proxy Manager已搭建 "
-                            echo "http://$ip_address:81"
-                            echo "默认账号：admin@example.com"
-                            echo "默认密码：changeme"
-                            echo " "
-                            echo "脚本运行完毕"
-                            # 提示用户按任意键继续
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;   
-                        2)
-                            # 提示用户输入
-                            echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
-                            read answer
-                            # 根据用户输入决定操作
-                            case $answer in
-                            y)
-                                echo "Deleting..."
-                                docker stop $name
-                                docker rm $name
-                                rm -rf /home/dc/$name
-                                echo "Deleted."
-                                ;;
-                            n)
-                                echo "Deleting..."  
-                                docker stop $name
-                                docker rm $name
-                                echo "Docker项目已删除 挂载卷保留."
-                                ;;
-                            *)
-                                echo "Invalid input. Please enter 'y' for yes or 'n' for no."
-                                ;;
-                            esac
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;
-                        3)
-                            cd /home/dc/npm
-                            docker-compose pull
-                            docker-compose up -d
-                            docker image prune
-                            ;;
-                        0)
-                            eco
-                            exit
-                            ;;   
-                        *)
-                            echo "无效输入"
-                            ;;              
-                    esac
-                done
-                ;;
-            6)
-                while true; do
-                clear
-                    echo -e "\033[38;5;208m'兰空图床lsky-pro' \033[0m"
-                    echo "1.安装   2.卸载   3.更新"                   
-                    echo "0.返回主菜单"
-                    read -p "请输入你的选择：" user_choice
-                    port=7791
-                    case $user_choice in
-                        1)                           
-                            install_docker
-                            iptables_open
-                            # 初始化端口占用信息变量
-                            ports_to_check=7791
-                            # 使用函数检查定义的端口数组
-                            if ! check_ports "${ports_to_check[@]}"; then
-                                exit 1  # 如果检查失败则退出
-                            else
-                                echo "端口未被占用，可以继续执行"
-                            fi
-
-                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "lsky-pro")
-                            if [ "$container_exists" = "lsky-pro" ]; then
-                                echo "lsky-pro容器已存在"
-                            else
-
-                                mkdir -p /home/dc/lsky-pro
-                                curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/lsky-pro.yml -o /home/dc/lsky-pro/docker-compose.yml
-                                cd /home/dc/lsky-pro   # 来到 docker-compose 文件所在的文件夹下
-                                docker-compose up -d
-                            fi
-
-                            clear
-                            check_ip_address
-                            echo "Nginx Proxy Manager已搭建 "
-                            echo "http://$ip_address:$port"
-                            echo "数据库地址：lsky-pro-db"
-                            echo "数据库链接端口留空"
-                            echo "数据库名称/路径、数据库用户名、密码：lsky-pro"
-                            echo " "
-                            echo "脚本运行完毕"
-                            # 提示用户按任意键继续
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;   
-                        2)
-                            # 提示用户输入
-                            echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
-                            read answer
-                            # 根据用户输入决定操作
-                            case $answer in
-                            y)
-                                echo "Deleting..."
-                                docker stop $name
-                                docker rm $name
-                                rm -rf /home/dc/$name
-                                echo "Deleted."
-                                ;;
-                            n)
-                                echo "Deleting..."  
-                                docker stop $name
-                                docker rm $name
-                                echo "Docker项目已删除 挂载卷保留."
-                                ;;
-                            *)
-                                echo "Invalid input. Please enter 'y' for yes or 'n' for no."
-                                ;;
-                            esac
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;
-                        3)
-                            cd /home/dc/lsky-pro
-                            docker-compose pull
-                            docker-compose up -d
-                            docker image prune
-                            ;;
-                        0)
-                            eco
-                            exit
-                            ;;   
-                        *)
-                            echo "无效输入"
-                            ;;              
-                    esac
-                done
-                ;;
-            7)
-                while true; do
-                clear
-                    echo -e "\033[38;5;208m'文件快递柜Filecodebox' \033[0m"
-                    echo "1.安装   2.卸载   3.更新"                   
-                    echo "0.返回主菜单"
-                    read -p "请输入你的选择：" user_choice
-                    name=filecodebox
-                    port=8060
-                    case $user_choice in
-                        1)                           
-                            install_docker
-                            iptables_open
-                            # 初始化端口占用信息变量
-                            ports_to_check=8060
-                            # 使用函数检查定义的端口数组
-                            if ! check_ports "${ports_to_check[@]}"; then
-                                exit 1  # 如果检查失败则退出
-                            else
-                                echo "端口未被占用，可以继续执行"
-                            fi
-
-                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "filecodebox")
-                            if [ "$container_exists" = "filecodebox" ]; then
-                                echo "filecodebox容器已存在"
-                            else
-
-                                mkdir -p /home/dc/filecodebox
-                                curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/filecodebox.yml -o /home/dc/filecodebox/docker-compose.yml
-                                cd /home/dc/filecodebox   # 来到 docker-compose 文件所在的文件夹下
-                                docker-compose up -d
-                            fi
-
-                            clear
-                            check_ip_address
-                            echo "文件快递柜已搭建 "
-                            echo "http://$ip_address:$port"
-                            echo "后台：http://$ip_address:$port/#/admin"
-                            echo "后台默认密码：FileCodeBox2023"
-                            echo " "
-                            echo "脚本运行完毕"
-                            # 提示用户按任意键继续
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;   
-                        2)
-                            # 提示用户输入
-                            echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
-                            read answer
-                            # 根据用户输入决定操作
-                            case $answer in
-                            y)
-                                echo "Deleting..."
-                                docker stop $name
-                                docker rm $name
-                                rm -rf /home/dc/$name
-                                echo "Deleted."
-                                ;;
-                            n)
-                                echo "Deleting..."  
-                                docker stop $name
-                                docker rm $name
-                                echo "Docker项目已删除 挂载卷保留."
-                                ;;
-                            *)
-                                echo "Invalid input. Please enter 'y' for yes or 'n' for no."
-                                ;;
-                            esac
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;
-                        3)
-                            cd /home/dc/filecodebox
-                            docker-compose pull
-                            docker-compose up -d
-                            docker image prune
-                            ;;
-                        0)
-                            eco
-                            exit
-                            ;;   
-                        *)
-                            echo "无效输入"
-                            ;;              
-                    esac
-                done
-                ;;
-            8)
-                while true; do
-                clear
-                    echo -e "\033[38;5;208m'订阅管理系统Wallos' \033[0m"
-                    echo "源码：https://github.com/ellite/Wallos"
-                    echo "------------------------"
-                    echo "菜单栏："
-                    echo "------------------------"
-                    echo "1.安装项目     2.删除项目"
-                    echo "0.返回主菜单"
-                    read -p "请输入你的选择：" user_choice
-                    name=wallos
-                    port=8282
-                    case $user_choice in
-                        1)
-                            install_docker
-                            iptables_open                     
-                            # 检查名为sun-panel的容器是否存在
-                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
-                            if [ "$container_exists" = "$name" ]; then
-                                echo "已安装"
-                            else
-                                
-                                # 初始化端口占用信息变量
-                                ports_to_check=$port
-                                # 使用函数检查定义的端口数组
-                                if ! check_ports "${ports_to_check[@]}"; then
-                                    exit 1  # 如果检查失败则退出
-                                else
-                                    echo "端口未被占用，可以继续执行"
-                                fi
-                                
-                            docker pull bellamy/wallos:latest
-                            docker run -d --name wallos \
-                            -v /home/dc/wallos/db:/var/www/html/db \
-                            -v /home/dc/wallos/logos:/var/www/html/images/uploads/logos \
-                            -e TZ=Europe/Berlin -p 8282:80 --restart unless-stopped \
-                            bellamy/wallos:latest
-
-                            fi
-
-                            clear
-                            check_ip_address
-                            echo "$name已搭建 "
-                            echo "http://$ip_address:$port"
-                            echo " "
-                            echo "脚本运行完毕"
-                            # 提示用户按任意键继续
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;                   
-                        2)
-                            # 提示用户输入
-                            echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
-                            read answer
-                            # 根据用户输入决定操作
-                            case $answer in
-                            y)
-                                echo "Deleting..."
-                                docker stop $name
-                                docker rm $name
-                                rm -rf /home/dc/$name
-                                echo "Deleted."
-                                ;;
-                            n)
-                                echo "Deleting..."  
-                                docker stop $name
-                                docker rm $name
-                                echo "Docker项目已删除 挂载卷保留."
-                                ;;
-                            *)
-                                echo "Invalid input. Please enter 'y' for yes or 'n' for no."
-                                ;;
-                            esac
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;
-                        0)
-                            eco
-                            exit
-                            ;;   
-                        *)
-                            echo "无效输入"
-                            ;;
-                    esac
-                done
-                ;;
-            9)
-                while true; do
-                clear
-                    echo -e "\033[38;5;208m'标签管理Linkding' \033[0m"
-                    echo "源码：https://github.com/ellite/Wallos"
-                    echo "------------------------"
-                    echo "菜单栏："
-                    echo "------------------------"
-                    echo "1.安装项目     2.删除项目"
-                    echo "0.返回主菜单"
-                    read -p "请输入你的选择：" user_choice
-                    name=linkding
-                    port=9090
-                    case $user_choice in
-                        1)
-                            install_docker
-                            iptables_open                     
-                            # 检查名为sun-panel的容器是否存在
-                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
-                            if [ "$container_exists" = "$name" ]; then
-                                echo "已安装"
-                            else
-                                
-                                # 初始化端口占用信息变量
-                                ports_to_check=$port
-                                # 使用函数检查定义的端口数组
-                                if ! check_ports "${ports_to_check[@]}"; then
-                                    exit 1  # 如果检查失败则退出
-                                else
-                                    echo "端口未被占用，可以继续执行"
-                                fi
-                            echo -e "\033[92m请输入域名 确保已反代至'本机IP:9090'\033[0m"
-                            read domain
-                            full_domain="https://$domain"
-                            echo -e "\033[92m请输入面板用户名\033[0m"
-                            read username
-                            echo -e "\033[92m请输入面板邮箱\033[0m"
-                            read email
-                            docker pull sissbruecker/linkding:latest-plus
-                            docker run --name linkding -p 9090:9090 \
-                            -v /home/dc/linkding:/etc/linkding/data -d -e LD_CSRF_TRUSTED_ORIGINS="$full_domain" \
-                            sissbruecker/linkding:latest-plus    
-                            sleep 5
-                            docker exec -it linkding python manage.py createsuperuser --username="$username" --email="$email"
-                            
-                            fi
-
-                            clear
-                            check_ip_address
-                            echo "$name已搭建 "
-                            echo "$full_domain"
-                            echo " "
-                            echo "脚本运行完毕"
-                            # 提示用户按任意键继续
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;                   
-                        2)
-                            # 提示用户输入
-                            echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
-                            read answer
-                            # 根据用户输入决定操作
-                            case $answer in
-                            y)
-                                echo "Deleting..."
-                                docker stop $name
-                                docker rm $name
-                                rm -rf /home/dc/$name
-                                echo "Deleted."
-                                ;;
-                            n)
-                                echo "Deleting..."  
-                                docker stop $name
-                                docker rm $name
-                                echo "Docker项目已删除 挂载卷保留."
-                                ;;
-                            *)
-                                echo "Invalid input. Please enter 'y' for yes or 'n' for no."
-                                ;;
-                            esac
-                            read -n 1 -s -r -p "按任意键返回"
-                            echo  # 添加一个新行作为输出的一部分
-                            ;;
-                        0)
-                            eco
-                            exit
-                            ;;   
-                        *)
-                            echo "无效输入"
-                            ;;
-                    esac
-                done
-                ;;
-            0)
+            0)                  
                 clear
                 exit
                 ;;
-            88)
-                renew
-                ;;
             *)
                 echo "无效输入"
+                sleep 1
+                ;;
+            88)
+                renew
                 ;;
 
         esac
