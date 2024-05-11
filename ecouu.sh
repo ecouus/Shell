@@ -96,6 +96,7 @@ while true; do
     echo "3.sun-panel               4.memos   "
     echo "5.Nginx Proxy Manager     6.兰空图床"
     echo "7.Filecodebox             8.Wallos  "
+    echo "9.Linkding             "
     echo " "  
     echo "0.退出脚本   88.更新脚本"
     read -p "请输入你的选择：" choice
@@ -875,6 +876,99 @@ while true; do
                     esac
                 done
                 ;;
+            9)
+                while true; do
+                clear
+                    echo -e "\033[38;5;208m'标签管理Linkding' \033[0m"
+                    echo "源码：https://github.com/ellite/Wallos"
+                    echo "------------------------"
+                    echo "菜单栏："
+                    echo "------------------------"
+                    echo "1.安装项目     2.删除项目"
+                    echo "0.返回主菜单"
+                    read -p "请输入你的选择：" user_choice
+                    name=linkding
+                    port=9090
+                    case $user_choice in
+                        1)
+                            install_docker
+                            iptables_open                     
+                            # 检查名为sun-panel的容器是否存在
+                            container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                            if [ "$container_exists" = "$name" ]; then
+                                echo "已安装"
+                            else
+                                
+                                # 初始化端口占用信息变量
+                                ports_to_check=$port
+                                # 使用函数检查定义的端口数组
+                                if ! check_ports "${ports_to_check[@]}"; then
+                                    exit 1  # 如果检查失败则退出
+                                else
+                                    echo "端口未被占用，可以继续执行"
+                                fi
+                            echo -e "\033[92m请输入域名 确保已反代至'本机IP:9090'\033[0m"
+                            read domain
+                            full_domain="https://$domain"
+                            echo -e "\033[92m请输入面板用户名\033[0m"
+                            read username
+                            echo -e "\033[92m请输入面板邮箱\033[0m"
+                            read email
+                            docker pull sissbruecker/linkding:latest-plus
+                            docker run --name linkding -p 9090:9090 \
+                            -v /home/dc/linkding:/etc/linkding/data -d -e LD_CSRF_TRUSTED_ORIGINS="$full_domain" \
+                            sissbruecker/linkding:latest-plus    
+                            sleep 5
+                            docker exec -it linkding python manage.py createsuperuser --username="$username" --email="$email"
+                            
+                            fi
+
+                            clear
+                            check_ip_address
+                            echo "$name已搭建 "
+                            echo "$full_domain"
+                            echo " "
+                            echo "脚本运行完毕"
+                            # 提示用户按任意键继续
+                            read -n 1 -s -r -p "按任意键返回"
+                            echo  # 添加一个新行作为输出的一部分
+                            ;;                   
+                        2)
+                            # 提示用户输入
+                            echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
+                            read answer
+                            # 根据用户输入决定操作
+                            case $answer in
+                            y)
+                                echo "Deleting..."
+                                docker stop $name
+                                docker rm $name
+                                rm -rf /home/dc/$name
+                                echo "Deleted."
+                                ;;
+                            n)
+                                echo "Deleting..."  
+                                docker stop $name
+                                docker rm $name
+                                echo "Docker项目已删除 挂载卷保留."
+                                ;;
+                            *)
+                                echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+                                ;;
+                            esac
+                            read -n 1 -s -r -p "按任意键返回"
+                            echo  # 添加一个新行作为输出的一部分
+                            ;;
+                        0)
+                            eco
+                            exit
+                            ;;   
+                        *)
+                            echo "无效输入"
+                            ;;
+                    esac
+                done
+                ;;
             0)
                 clear
                 exit
@@ -888,4 +982,3 @@ while true; do
 
         esac
 done
-
