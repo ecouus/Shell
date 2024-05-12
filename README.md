@@ -1,14 +1,15 @@
 # 开源可视化一键脚本
-## 安装weget curl依赖包  
+## 安装指南
+## 1.安装weget curl依赖包  
 *Debian/Ubuntu*  
 `apt-get update -y && apt-get install curl -y`   
 *CentOS/Fedora*  
 `yum update -y && yum install curl -y`  
-
-## 一键脚本  
+## 2.运行一键脚本  
 `
 curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/ecouu.sh && sudo chmod +x ecouu.sh && ./ecouu.sh
-`
+`  
+
 # 项目名称
 **ECO工具箱**
 ## 简介
@@ -16,6 +17,7 @@ curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/ecouu.sh && sudo
 ## 特性
 - Docker一键安装：快速部署Docker环境。
 - 工具箱：包含多种实用工具脚本，助你轻松管理和优化你的系统。
+- 逐步完善中...
 ## 贡献
 如果你想要贡献代码或改进我们的脚本，非常欢迎！请通过Pull Request或Issue与我们联系。
 ## 许可证
