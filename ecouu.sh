@@ -44,9 +44,9 @@ check_ports() {
 
 iptables_open() {
     # 允许指定端口的流量通过
-    port="$1"
-    iptables -A INPUT -p tcp --dport "$port" -j ACCEPT
-    iptables -A OUTPUT -p tcp --sport "$port" -j ACCEPT
+    ports="$port"
+    iptables -A INPUT -p tcp --dport "$ports" -j ACCEPT
+    iptables -A OUTPUT -p tcp --sport "$ports" -j ACCEPT
 }
 
 install_docker() {
