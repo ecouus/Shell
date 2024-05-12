@@ -71,6 +71,9 @@ renew(){
     curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/ecouu.sh && sudo chmod +x ecouu.sh && ./ecouu.sh
 }
 
+eco() {
+    e
+}
 
 sudo apt install wget unzip -y
 
