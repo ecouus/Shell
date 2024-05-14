@@ -899,7 +899,7 @@ while true; do
                             while true; do
                             clear
                                 echo -e "\033[38;5;208m'标签管理Linkding' \033[0m"
-                                echo "源码：https://github.com/ellite/Wallos"
+                                echo "源码：https://github.com/sissbruecker/linkding"
                                 echo "------------------------"
                                 echo "菜单栏："
                                 echo "------------------------"
