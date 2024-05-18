@@ -108,7 +108,7 @@ while true; do
                 echo "3.PersonalPage                 4.homepage    "
                 echo "5.sun-panel                    6.兰空图床"
                 echo "7.Filecodebox                  8.Wallos  "
-                echo "9.Linkding             "
+                echo "9.Linkding                     10.Alist    "
                 echo " "  
                 echo "0.返回主菜单   "
                 read -p "请输入你的选择：" choice
@@ -1008,6 +1008,183 @@ while true; do
                                         read -n 1 -s -r -p "按任意键返回"
                                         echo  # 添加一个新行作为输出的一部分
                                         ;;     
+                                    0)
+                                        eco
+                                        exit
+                                        ;;   
+                                    *)
+                                        echo "无效输入"
+                                        sleep 1
+                                        ;;
+                                esac
+                            done
+                            ;;
+                        10)
+                            while true; do
+                            clear
+                                echo -e "\033[38;5;208m'多存储文件列表程序Alist' \033[0m"
+                                echo "源码：https://github.com/alist-org/alist"
+                                echo "------------------------"
+                                echo "菜单栏："
+                                echo "------------------------"
+                                echo "1.安装项目     2.删除项目"
+                                echo "0.返回主菜单"
+                                read -p "请输入你的选择：" user_choice
+                                name=alist
+                                port=5244
+                                case $user_choice in
+                                    1)
+                                        install_docker
+                                        iptables_open                     
+                                        # 检查名为sun-panel的容器是否存在
+                                        container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                                        if [ "$container_exists" = "$name" ]; then
+                                            echo "已安装"
+                                        else
+                                            
+                                            # 初始化端口占用信息变量
+                                            ports_to_check=$port
+                                            # 使用函数检查定义的端口数组
+                                            if ! check_ports "${ports_to_check[@]}"; then
+                                                exit 1  # 如果检查失败则退出
+                                            else
+                                                echo "端口未被占用，可以继续执行"
+                                            fi
+
+                                        docker pull xhofe/alist:latest
+                                        docker run -d --name alist\
+                                        --restart=always \
+                                        -v /home/dc/alist:/opt/alist/data \
+                                        -v /home/dc/alist/file:/opt/alist/data/file \
+                                        -p 5244:5244 \
+                                        -e PUID=0 \
+                                        -e PGID=0 \
+                                        -e UMASK=022 \
+                                        xhofe/alist:latest
+
+                                        fi
+
+                                        clear
+                                        check_ip_address
+                                        echo "$name已搭建 "
+                                        echo "http://$ip_address:$port"
+                                        docker exec -it alist ./alist admin random
+                                        echo " "
+                                        echo "脚本运行完毕"
+                                        # 提示用户按任意键继续
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;                   
+                                    2)
+                                        # 提示用户输入
+                                        echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
+                                        read answer
+                                        # 根据用户输入决定操作
+                                        case $answer in
+                                        y)
+                                            echo "Deleting..."
+                                            docker stop $name
+                                            docker rm $name
+                                            rm -rf /home/dc/$name
+                                            echo "Deleted."
+                                            ;;
+                                        n)
+                                            echo "Deleting..."  
+                                            docker stop $name
+                                            docker rm $name
+                                            echo "Docker项目已删除 挂载卷保留."
+                                            ;;
+                                        *)
+                                            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+                                            ;;
+                                        esac
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;
+                                    0)
+                                        eco
+                                        exit
+                                        ;;   
+                                    *)
+                                        echo "无效输入"
+                                        sleep 1
+                                        ;;
+                                esac
+                            done
+                            ;;
+                        模版)
+                            while true; do
+                            clear
+                                echo -e "\033[38;5;208m'项目名称' \033[0m"
+                                echo "源码：https://项目地址"
+                                echo "------------------------"
+                                echo "菜单栏："
+                                echo "------------------------"
+                                echo "1.安装项目     2.删除项目"
+                                echo "0.返回主菜单"
+                                read -p "请输入你的选择：" user_choice
+                                name=名字！
+                                port=端口！
+                                case $user_choice in
+                                    1)
+                                        install_docker
+                                        iptables_open                     
+                                        # 检查名为sun-panel的容器是否存在
+                                        container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                                        if [ "$container_exists" = "$name" ]; then
+                                            echo "已安装"
+                                        else
+                                            
+                                            # 初始化端口占用信息变量
+                                            ports_to_check=$port
+                                            # 使用函数检查定义的端口数组
+                                            if ! check_ports "${ports_to_check[@]}"; then
+                                                exit 1  # 如果检查失败则退出
+                                            else
+                                                echo "端口未被占用，可以继续执行"
+                                            fi
+
+                                        docker pull 镜像名！
+                                        docker run 命令！
+
+                                        fi
+
+                                        clear
+                                        check_ip_address
+                                        echo "$name已搭建 "
+                                        echo "http://$ip_address:$port"
+                                        echo " "
+                                        echo "脚本运行完毕"
+                                        # 提示用户按任意键继续
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;                   
+                                    2)
+                                        # 提示用户输入
+                                        echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
+                                        read answer
+                                        # 根据用户输入决定操作
+                                        case $answer in
+                                        y)
+                                            echo "Deleting..."
+                                            docker stop $name
+                                            docker rm $name
+                                            rm -rf /home/dc/$name
+                                            echo "Deleted."
+                                            ;;
+                                        n)
+                                            echo "Deleting..."  
+                                            docker stop $name
+                                            docker rm $name
+                                            echo "Docker项目已删除 挂载卷保留."
+                                            ;;
+                                        *)
+                                            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+                                            ;;
+                                        esac
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;
                                     0)
                                         eco
                                         exit
