@@ -1070,6 +1070,7 @@ while true; do
                                         echo "http://$ip_address:$port"
                                         docker exec -it alist ./alist admin random
                                         echo " "
+                                        echo "本地存储挂载路径（无需使用此项的可忽略）：-v /home/dc/alist/file:/opt/alist/data/file "
                                         echo "脚本运行完毕"
                                         # 提示用户按任意键继续
                                         read -n 1 -s -r -p "按任意键返回"
