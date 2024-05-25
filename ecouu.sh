@@ -1239,7 +1239,7 @@ while true; do
 
                                         read -p "请输入OpenAI API Key: " OPENAI_API_KEY
                                         read -p "请输入访问密码Code: " CODE
-                                        read -p "请输入接口地址Base URL: " BASE_URL
+                                        read -p "请输入接口地址Base URL（留空则默认调用官方接口）: " BASE_URL
 
                                         docker pull yidadaa/chatgpt-next-web
                                         docker run -d --restart=always \
@@ -1249,6 +1249,20 @@ while true; do
                                         -e CODE=$CODE \
                                         -e BASE_URL=$BASE_URL \
                                         yidadaa/chatgpt-next-web
+
+                                        if [ -z "$BASE_URL" ]
+                                        then
+                                            docker run -d -p 6600:3000 \
+                                            -e OPENAI_API_KEY=$OPENAI_API_KEY \
+                                            -e CODE=$CODE \
+                                            yidadaa/chatgpt-next-web
+                                        else
+                                            docker run -d -p 6600:3000 \
+                                            -e OPENAI_API_KEY=$OPENAI_API_KEY \
+                                            -e CODE=$CODE \
+                                            -e BASE_URL=$BASE_URL \
+                                            yidadaa/chatgpt-next-web
+                                        fi
 
 
                                         fi
