@@ -24,5 +24,3 @@ curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/ecouu.sh && sudo
 本项目采用 MIT 许可证。有关更多详细信息，请查看 [LICENSE](LICENSE) 文件。
 ## 免责声明
 本项目中的脚本部分收集自互联网，作者对脚本的安全性和功能性不做任何承诺，使用者需严格遵守当地的法律法规，在使用脚本时应自行承担风险。
-
-![DigitalVirt LOGO](https://digitalvirt.com/templates/BlueWhite/img/logo-dark.svg)
