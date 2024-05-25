@@ -109,7 +109,7 @@ while true; do
                 echo "5.sun-panel                    6.兰空图床"
                 echo "7.Filecodebox                  8.Wallos  "
                 echo "9.Linkding                     10.Alist    "
-                echo "11.Vocechat                       "
+                echo "11.Vocechat                    12.ChatGPT-Next-Web    "
                 echo " "  
                 echo "0.返回主菜单   "
                 read -p "请输入你的选择：" choice
@@ -1155,6 +1155,101 @@ while true; do
                                         -v /home/dc/vocechat-server/data:/home/vocechat-server/data \
                                         -e NETWORK__FRONTEND_URL="$full_domain" \
                                         privoce/vocechat-server:latest
+
+                                        fi
+
+                                        clear
+                                        check_ip_address
+                                        echo "$name已搭建 "
+                                        echo "http://$ip_address:$port"
+                                        echo " "
+                                        echo "脚本运行完毕"
+                                        # 提示用户按任意键继续
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;                   
+                                    2)
+                                        # 提示用户输入
+                                        echo "是否删除宿主机挂载卷 /home/dc/$name? (y/n)"
+                                        read answer
+                                        # 根据用户输入决定操作
+                                        case $answer in
+                                        y)
+                                            echo "Deleting..."
+                                            docker stop $name
+                                            docker rm $name
+                                            rm -rf /home/dc/$name
+                                            echo "Deleted."
+                                            ;;
+                                        n)
+                                            echo "Deleting..."  
+                                            docker stop $name
+                                            docker rm $name
+                                            echo "Docker项目已删除 挂载卷保留."
+                                            ;;
+                                        *)
+                                            echo "Invalid input. Please enter 'y' for yes or 'n' for no."
+                                            ;;
+                                        esac
+                                        read -n 1 -s -r -p "按任意键返回"
+                                        echo  # 添加一个新行作为输出的一部分
+                                        ;;
+                                    0)
+                                        eco
+                                        exit
+                                        ;;   
+                                    *)
+                                        echo "无效输入"
+                                        sleep 1
+                                        ;;
+                                esac
+                            done
+                            ;;
+                        12)
+                            while true; do
+                            clear
+                                echo -e "\033[38;5;208m'ChatGPT-Next-Web' \033[0m"
+                                echo "源码：https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web"
+                                echo "------------------------"
+                                echo "菜单栏："
+                                echo "------------------------"
+                                echo "1.安装项目     2.删除项目"
+                                echo "0.返回主菜单"
+                                read -p "请输入你的选择：" user_choice
+                                name=ChatGPT-Next-Web
+                                port=6600
+                                case $user_choice in
+                                    1)
+                                        install_docker
+                                        iptables_open                     
+                                        # 检查名为sun-panel的容器是否存在
+                                        container_exists=$(docker ps -a --format '{{.Names}}' | grep -w "$name")
+                                        if [ "$container_exists" = "$name" ]; then
+                                            echo "已安装"
+                                        else
+                                            
+                                            # 初始化端口占用信息变量
+                                            ports_to_check=$port
+                                            # 使用函数检查定义的端口数组
+                                            if ! check_ports "${ports_to_check[@]}"; then
+                                                exit 1  # 如果检查失败则退出
+                                            else
+                                                echo "端口未被占用，可以继续执行"
+                                            fi
+
+                                        read -p "请输入OpenAI API Key: " OPENAI_API_KEY
+                                        read -p "请输入访问密码Code: " CODE
+                                        read -p "请输入接口地址Base URL: " BASE_URL
+
+                                        docker pull yidadaa/chatgpt-next-web
+                                        docker run -d --restart=always \
+                                        -p 6600:3000 \
+                                        --name ChatGPT-Next-Web \
+                                        -e OPENAI_API_KEY=$OPENAI_API_KEY \
+                                        -e CODE=$CODE \
+                                        -e BASE_URL=$BASE_URL \
+                                        yidadaa/chatgpt-next-web
+
 
                                         fi
 
