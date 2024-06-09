@@ -1,4 +1,5 @@
 # 开源可视化一键脚本
+![IMG_4867.png](https://image.dooo.ng/c/2024/06/09/666522798d0fe.webp)
 ## 安装指南
 ## 1.安装weget curl依赖包  
 *Debian/Ubuntu*  
