@@ -20,7 +20,7 @@ curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/ecouu.sh && sudo
 - 工具箱：包含多种实用工具脚本，助你轻松管理和优化你的系统。
 - 逐步完善中...
 ## 贡献
-如果你想要贡献代码或改进我们的脚本，非常欢迎！请通过Pull Request或Issue与我们联系。
+如果你想要贡献代码或改进我们的脚本，非常欢迎！请通过Pull Request或Issue与我联系。
 ## 许可证
 本项目采用 MIT 许可证。有关更多详细信息，请查看 [LICENSE](LICENSE) 文件。
 ## 免责声明
