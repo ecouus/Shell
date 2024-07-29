@@ -933,7 +933,7 @@ while true; do
                                         read -p $'\033[0;32m请输入面板用户名:\033[0m' username
                                         read -p $'\033[0;32m请输入面板邮箱:\033[0m' email
                                         docker pull sissbruecker/linkding:latest-plus
-                                        docker run --name linkding -p 9090:9090 \
+                                        docker run -d --name linkding -p 9090:9090 \
                                         -v /home/dc/linkding:/etc/linkding/data -d -e LD_CSRF_TRUSTED_ORIGINS="$full_domain" \
                                         sissbruecker/linkding:latest-plus    
                                         sleep 5
