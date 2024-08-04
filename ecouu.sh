@@ -104,7 +104,6 @@ while true; do
                 while true; do
                 clear
                 echo -e "\033[92mDocker百宝箱\033[0m"
-                echo "dc.单独安装Docker"  
                 echo "1.Nginx Proxy Manager          2.memos     "
                 echo "3.PersonalPage                 4.homepage    "
                 echo "5.sun-panel                    6.兰空图床"
@@ -113,10 +112,11 @@ while true; do
                 echo "11.Vocechat                    12.ChatGPT-Next-Web    "
                 echo "13.Trilium                   "           
                 echo " "  
+                echo "99.单独安装Docker"  
                 echo "0.返回主菜单   "
                 read -p "请输入你的选择：" choice
                     case $choice in
-                        dc)
+                        99)
                             install_docker
                             ;;
                         1)
