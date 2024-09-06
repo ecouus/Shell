@@ -1502,14 +1502,14 @@ while true; do
                 while true; do
                 clear
                 echo "此页面脚本均收集自网络 请此行甄别"
-                echo "1.KejilionMod               2.IPQuality(xykt)"
+                echo "1.Kejilion                2.IPQuality(xykt)"
                 echo "3.可视化路由查询(sjlleo)          "
                 echo " "  
                 echo "0.返回主菜单   "
                 read -p "请输入你的选择：" choice
                     case $choice in          
                         1)
-                            curl -sS -O https://raw.githubusercontent.com/kejilion/sh/main/kejilion.sh && chmod +x kejilion.sh && ./kejilion.sh
+                            bash <(curl -sL kejilion.sh)
                             ;;  
                         2)
                             bash <(curl -sL IP.Check.Place)
