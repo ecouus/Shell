@@ -1,5 +1,5 @@
 # 开源可视化一键脚本
-![](https://i.111666.best/image/anSNeQWXXKOK3ATFrD1BlI.jpeg)
+![1](https://i.111666.best/image/anSNeQWXXKOK3ATFrD1BlI.jpeg)
 ## 安装指南
 ## 1.安装weget curl依赖包  
 *Debian/Ubuntu*  
