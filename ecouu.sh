@@ -1502,8 +1502,8 @@ while true; do
                 while true; do
                 clear
                 echo "此页面脚本均收集自网络 请此行甄别"
-                echo "1.Kejilion                2.IPQuality(xykt)"
-                echo "3.可视化路由查询(sjlleo)          "
+                echo "1.Kejilion                 2.IPQuality(xykt)"
+                echo "3.可视化路由查询(sjlleo)    4.极光面板       "
                 echo " "  
                 echo "0.返回主菜单   "
                 read -p "请输入你的选择：" choice
@@ -1516,6 +1516,9 @@ while true; do
                             ;;  
                         3)
                             bash <(curl -Ls https://raw.githubusercontent.com/sjlleo/nexttrace/main/nt_install.sh)
+                            ;; 
+                        4)
+                            bash <(curl -fsSL https://raw.githubusercontent.com/Aurora-Admin-Panel/deploy/main/install.sh)
                             ;; 
                         0)  
                             eco
