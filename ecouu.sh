@@ -1242,8 +1242,8 @@ while true; do
                                         read -p "请输入OpenAI API Key: " OPENAI_API_KEY
                                         read -p "请输入访问密码Code: " CODE
                                         read -p "请输入接口地址Base URL（留空则默认调用官方接口）: " BASE_URL
-                                        read -p "请输入默认模型 (按回车默认gpt-4): " DEFAULT_MODEL
-                                        DEFAULT_MODEL=${DEFAULT_MODEL:-gpt-4}
+                                        read -p "请输入默认模型 (按回车默认gpt-4o): " DEFAULT_MODEL
+                                        DEFAULT_MODEL=${DEFAULT_MODEL:-gpt-4o}
 
                                         docker pull yidadaa/chatgpt-next-web
                                         if [ -z "$BASE_URL" ]
