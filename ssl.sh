@@ -3,7 +3,6 @@
 gl_huang='\033[33m'
 gl_lv='\033[32m'
 gl_bai='\033[0m'
-add_ssl
 
 add_ssl() {
   local domain="${1:-}"
@@ -102,3 +101,6 @@ show_cert_expiry() {
   done
   echo ""
 }
+
+# 自动调用 add_ssl 函数
+add_ssl
