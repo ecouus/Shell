@@ -127,6 +127,7 @@ while true; do
                                 echo "1.安装   2.卸载   3.更新"                   
                                 echo "0.返回主菜单"
                                 read -p "请输入你的选择：" user_choice
+                                name=npm
                                 port=81
                                 case $user_choice in
                                     1)                           
@@ -148,9 +149,9 @@ while true; do
             
                                             curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/daemon.json -o /etc/docker/daemon.json
                                             sudo systemctl reload docker
-                                            mkdir -p /home/dc/npm
-                                            curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/npm.yml -o /home/dc/npm/docker-compose.yml
-                                            cd /home/dc/npm   # 来到 docker-compose 文件所在的文件夹下
+                                            mkdir -p /home/dc/$name
+                                            curl https://raw.githubusercontent.com/ecouus/Shell/main/dockeryml/npm.yml -o /home/dc/$name/docker-compose.yml
+                                            cd /home/dc/$name  # 来到 docker-compose 文件所在的文件夹下
                                             docker-compose up -d
                                         fi
 
@@ -193,7 +194,7 @@ while true; do
                                         echo  # 添加一个新行作为输出的一部分
                                         ;;
                                     3)
-                                        cd /home/dc/npm
+                                        cd /home/dc/$name
                                         docker-compose pull
                                         docker-compose up -d
                                         docker image prune
