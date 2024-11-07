@@ -174,15 +174,15 @@ while true; do
                                         case $answer in
                                         y)
                                             echo "Deleting..."
-                                            docker stop $name
-                                            docker rm $name
+                                            docker stop npm-app-1
+                                            docker rm npm-app-1
                                             rm -rf /home/dc/$name
                                             echo "Deleted."
                                             ;;
                                         n)
                                             echo "Deleting..."  
-                                            docker stop $name
-                                            docker rm $name
+                                            docker stop npm-app-1
+                                            docker rm npm-app-1
                                             echo "Docker项目已删除 挂载卷保留."
                                             ;;
                                         *)
