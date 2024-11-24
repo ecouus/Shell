@@ -156,7 +156,7 @@ manage() {
     rm -f "$NGINX_DIR/${domain}"
     rm -f "/etc/nginx/sites-enabled/${domain}"
     [ -d "/etc/letsencrypt/live/${domain}" ] && certbot revoke --cert-name ${domain} --delete-after-revoke --non-interactive
-    nginx -t && systemctl restart nginx && echo -e "${GREEN}删除完成${NC}"
+    nginx -t && systemctl reload nginx && echo -e "${GREEN}删除完成${NC}"
 }
 
 # 主菜单
