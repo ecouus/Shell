@@ -19,6 +19,7 @@ curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/main/ecouu.sh && sudo
 ## 特性
 - Docker一键安装：快速部署Docker环境。
 - 工具箱：包含多种实用工具脚本，助你轻松管理和优化你的系统。
+- Nginx配置脚本：轻松实现反代、重定向及证书申请与续签功能。
 - 逐步完善中...
 ## 贡献
 如果你想要贡献代码或改进我们的脚本，非常欢迎！请通过Pull Request或Issue与我联系。
