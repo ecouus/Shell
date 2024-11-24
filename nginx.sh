@@ -1,71 +1,159 @@
 #!/bin/bash
 
-# 清除屏幕
-clear
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+PROXY_URL="https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/conf/Reverse_proxy.conf"
+REDIRECT_URL="https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/conf/Redirect.conf"
+NGINX_DIR="/etc/nginx/sites-available"
 
-# 创建宿主机上的目录结构以存放Nginx配置和证书
-mkdir -p /home/dc/nginx/{conf.d,ssl,certbot,www}
+[[ $(id -u) != 0 ]] && echo -e "${RED}需要root权限${NC}" && exit 1
 
-# 拉取Nginx的Docker镜像
-echo "拉取Nginx Docker镜像..."
-docker pull nginx:latest
+# 安装或更新工具
+install_or_update_tool() {
+    # 遍历传入的工具列表
+    for TOOL in "$@"; do
+        # 更新软件源
+        if [ -f /etc/debian_version ]; then
+            apt update -y &>/dev/null
+        elif [ -f /etc/redhat-release ]; then
+            yum makecache -y &>/dev/null
+        fi
 
-# 读取用户输入的域名和目标网址
-read -p "请输入你的域名（如 example.com）: " yuming
-read -p "请输入目标网址（如 https://example-target.com）: " target_url
-
-# 在宿主机上创建Nginx配置文件
-config_file="/home/dc/nginx/conf.d/$yuming.conf"
-cat << EOF > $config_file
-server {
-    listen 80;
-    server_name $yuming www.$yuming;
-
-    location / {
-        proxy_pass $target_url;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_cache_bypass \$http_upgrade;
-    }
-
-    location /.well-known/acme-challenge/ {
-        root /usr/share/nginx/html;
-    }
-
-    listen 443 ssl; # SSL configuration
-    ssl_certificate /etc/nginx/ssl/fullchain.pem;
-    ssl_certificate_key /etc/nginx/ssl/privkey.pem;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384';
-    ssl_prefer_server_ciphers on;
+        # 检查并安装或更新工具
+        if ! command -v $TOOL &>/dev/null; then
+            if [ -f /etc/debian_version ]; then
+                apt install -y $TOOL &>/dev/null
+            elif [ -f /etc/redhat-release ]; then
+                yum install -y $TOOL &>/dev/null
+            fi
+        else
+            if [ -f /etc/debian_version ]; then
+                apt install --only-upgrade -y $TOOL &>/dev/null
+            elif [ -f /etc/redhat-release ]; then
+                yum update -y $TOOL &>/dev/null
+            fi
+        fi
+    done
 }
-EOF
 
-# 运行Nginx Docker容器
-echo "启动Nginx Docker容器..."
-docker run -d --name nginx-proxy -p 80:80 -p 443:443 \
-    -v /home/dc/nginx/conf.d:/etc/nginx/conf.d \
-    -v /home/dc/nginx/ssl:/etc/nginx/ssl \
-    -v /home/dc/nginx/www:/usr/share/nginx/html \
-    nginx
 
-# 等待Nginx启动
-sleep 5
+# 检测端口是否被占用
+check_port() {
+    PORT=$1
+    if lsof -i:$PORT &>/dev/null; then
+        exit 1
+    fi
+}
 
-# 使用Certbot申请SSL证书
-echo "使用Certbot为 $yuming 生成SSL证书..."
-sudo certbot certonly --webroot -w /home/dc/nginx/www -d $yuming -d www.$yuming --agree-tos --email your-email@example.com --non-interactive --deploy-hook "docker exec nginx-proxy nginx -s reload"
+install_or_update() {
+    # 检查并更新所需工具
+    install_or_update_tool nginx certbot python3-certbot-nginx curl wget
 
-# 证书路径更新
-sudo cp /etc/letsencrypt/live/$yuming/fullchain.pem /home/dc/nginx/ssl/fullchain.pem
-sudo cp /etc/letsencrypt/live/$yuming/privkey.pem /home/dc/nginx/ssl/privkey.pem
+    check_port 80
+    check_port 443
 
-# 重启Nginx容器以加载新证书
-docker restart nginx-proxy
+    # 启动 nginx 并设置开机自启
+    systemctl enable nginx &>/dev/null
+    systemctl start nginx &>/dev/null
 
-# 清理屏幕
-clear
-echo "您的反向代理网站已经设置完毕！"
-echo "您可以通过 http://$yuming 或 https://$yuming 访问该站点。"
+    # 设置证书自动续期
+    if ! crontab -l 2>/dev/null | grep -Fxq "0 9 * * 1 certbot renew -q"; then
+    (crontab -l 2>/dev/null; echo "0 9 * * 1 certbot renew -q") | crontab - &>/dev/null
+    fi
+
+}
+
+#——————————————————————————————————————————————————
+
+# 配置反向代理
+proxy() {
+    read -p "输入域名: " domain
+    read -p "输入反代IP: " ip
+    read -p "输入反代端口: " port
+
+    # 1. 下载并配置nginx
+    mkdir -p $NGINX_DIR
+    wget -O "$NGINX_DIR/${domain}" "$PROXY_URL" || { echo -e "${RED}下载配置失败${NC}"; return 1; }
+    sed -i "s/example/${domain}/g; s/127.0.0.1:0000/${ip}:${port}/g" "$NGINX_DIR/${domain}"
+    ln -sf "$NGINX_DIR/${domain}" "/etc/nginx/sites-enabled/${domain}"
+
+    # 2. 检查并应用配置
+    nginx -t && systemctl reload nginx || { echo -e "${RED}Nginx配置错误${NC}"; return 1; }
+
+    # 3. 配置SSL
+    certbot --nginx -d ${domain} --non-interactive --agree-tos --email admin@${domain} --redirect || \
+    { echo -e "${RED}SSL配置失败${NC}"; return 1; }
+
+    echo -e "${GREEN}配置完成: https://${domain} -> ${ip}:${port}${NC}"
+}
+
+# 配置重定向
+redirect() {
+    read -p "输入域名: " domain
+    read -p "输入目标URL: " url
+
+    mkdir -p $NGINX_DIR
+    wget -O "$NGINX_DIR/${domain}" "$REDIRECT_URL"
+    sed -i "s/example.com/${domain}/g; s|https://baidu.com|${url}|g" "$NGINX_DIR/${domain}"
+    ln -sf "$NGINX_DIR/${domain}" "/etc/nginx/sites-enabled/${domain}"
+
+    nginx -t && systemctl reload nginx || { echo -e "${RED}Nginx配置错误${NC}"; return 1; }
+
+    certbot --nginx -d ${domain} --non-interactive --agree-tos --email admin@${domain} --redirect || \
+    { echo -e "${RED}SSL配置失败${NC}"; return 1; }
+
+    echo -e "${GREEN}配置完成: https://${domain} -> ${url}${NC}"
+}
+
+# 管理配置
+manage() {
+    echo "已配置的域名:"
+    echo "------------------------"
+    count=0
+    for conf in $NGINX_DIR/*; do
+        [ -f "$conf" ] || continue
+        ((count++))
+        domain=$(basename "$conf")
+        if grep -q "proxy_pass" "$conf"; then
+            target=$(grep "proxy_pass" "$conf" | awk '{print $2}' | tr -d ';')
+            echo "$count. $domain  > 反代至: $target"
+        else
+            target=$(grep "return 301" "$conf" | awk '{print $3}' | cut -d'$' -f1)
+            echo "$count. $domain  > 重定向至: $target"
+        fi
+    done
+    [ $count -eq 0 ] && echo "暂无配置"
+    echo "------------------------"
+    echo "输入要删除的域名(直接回车取消):"
+    read domain
+    [ -z "$domain" ] && return
+    [ -f "$NGINX_DIR/${domain}" ] || { echo "域名不存在"; return; }
+
+    rm -f "$NGINX_DIR/${domain}"
+    rm -f "/etc/nginx/sites-enabled/${domain}"
+    [ -d "/etc/letsencrypt/live/${domain}" ] && certbot revoke --cert-name ${domain} --delete-after-revoke --non-interactive
+    nginx -t && systemctl restart nginx && echo -e "${GREEN}删除完成${NC}"
+}
+
+# 主菜单
+while true; do
+    clear
+    echo -e "${GREEN}Nginx配置管理${NC}"
+    echo "1. 安装/更新所需软件
+2. 配置反代
+3. 配置重定向
+9. 管理配置
+0. 退出"
+    read -p "选择功能: " choice
+
+    case "$choice" in
+        1) install_or_update ;;
+        2) proxy ;;
+        3) redirect ;;
+        9) manage ;;
+        0) exit ;;
+        *) echo -e "${RED}无效选项${NC}" ;;
+    esac
+    echo; read -p "按回车继续..."
+done
