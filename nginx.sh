@@ -9,6 +9,23 @@ NGINX_DIR="/etc/nginx/sites-available"
 
 [[ $(id -u) != 0 ]] && echo -e "${RED}需要root权限${NC}" && exit 1
 
+check_ip_address() {
+    local ipv4_address=$(curl -s --max-time 5 ipv4.ip.sb)
+    local ipv6_address=$(curl -s --max-time 5 ipv6.ip.sb)
+
+    # 判断IPv4地址是否获取成功
+    if [[ -n "$ipv4_address" ]]; then
+        ip_address=$ipv4_address
+    elif [[ -n "$ipv6_address" ]]; then
+        # 如果IPv4地址未获取到，但IPv6地址获取成功，则使用IPv6地址
+        ip_address=[$ipv6_address]
+    else
+        # 如果两个地址都没有获取到，可以在这里处理这种情况
+        echo "无法获取IP地址"
+        ip_address=""
+    fi
+}
+
 # 安装或更新工具
 install_or_update_tool() {
     # 遍历传入的工具列表
@@ -68,6 +85,9 @@ install_or_update() {
 
 # 配置反向代理
 proxy() {
+    clear
+    check_ip_address
+    echo "本机IP:$ip_address"
     read -p "输入域名: " domain
     read -p "输入反代IP: " ip
     read -p "输入反代端口: " port
@@ -90,6 +110,9 @@ proxy() {
 
 # 配置重定向
 redirect() {
+    clear
+    check_ip_address
+    echo "本机IP:$ip_address"
     read -p "输入域名: " domain
     read -p "输入目标URL: " url
 
