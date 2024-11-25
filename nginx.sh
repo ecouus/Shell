@@ -26,63 +26,42 @@ check_ip_address() {
     fi
 }
 
-# 安装或更新工具
-install_or_update_tool() {
-    # 遍历传入的工具列表
-    for TOOL in "$@"; do
-        # 更新软件源
-        if [ -f /etc/debian_version ]; then
-            apt update -y &>/dev/null
-        elif [ -f /etc/redhat-release ]; then
-            yum makecache -y &>/dev/null
-        fi
-
-        # 检查并安装或更新工具
-        if ! command -v $TOOL &>/dev/null; then
-            if [ -f /etc/debian_version ]; then
-                apt install -y $TOOL &>/dev/null
-            elif [ -f /etc/redhat-release ]; then
-                yum install -y $TOOL &>/dev/null
-            fi
-        else
-            if [ -f /etc/debian_version ]; then
-                apt install --only-upgrade -y $TOOL &>/dev/null
-            elif [ -f /etc/redhat-release ]; then
-                yum update -y $TOOL &>/dev/null
-            fi
-        fi
-    done
-}
-
-# 检测端口是否被占用
+# 端口检查函数
 check_port() {
     PORT=$1
-    if lsof -i:$PORT &>/dev/null; then
-        exit 1
+    if netstat -tuln | grep ":$PORT " | grep -q "LISTEN"; then
+        echo -e "${RED}错误: 端口 $PORT 已被占用 (LISTEN)${NC}"
+        echo "占用详情:"
+        netstat -tulnp | grep ":$PORT "
+        return 1
     fi
+    return 0
 }
 
+# 安装或更新工具
 install_or_update() {
-    # 检查并更新所需工具
-    install_or_update_tool nginx certbot python3-certbot-nginx curl wget
+    echo -e "${GREEN}开始安装所需组件...${NC}"
+    
+    # 检查端口
+    check_port 80 || { read -p "按回车返回主菜单..."; return 1; }
+    check_port 443 || { read -p "按回车返回主菜单..."; return 1; }
 
-    check_port 80
-    check_port 443
+    # 安装组件
+    apt update && \
+    apt install nginx -y && \
+    apt install certbot python3-certbot-nginx -y
 
-    # 启动 nginx 并设置开机自启
-    systemctl enable nginx &>/dev/null
-    systemctl start nginx &>/dev/null
+    systemctl enable nginx
+    systemctl start nginx
 
-    # 设置证书自动续期
     if ! crontab -l 2>/dev/null | grep -Fxq "0 9 * * 1 certbot renew -q"; then
-    (crontab -l 2>/dev/null; echo "0 9 * * 1 certbot renew -q") | crontab - &>/dev/null
+        (crontab -l 2>/dev/null; echo "0 9 * * 1 certbot renew -q") | crontab -
     fi
 
-    echo -e "${GREEN}安装或更新完成${NC}"
-    read -p "按回车返回..."
+    echo -e "${GREEN}安装和配置已完成${NC}"
 }
 
-# ———————————————————————————————
+#——————————————————————————————————————————————————
 
 # 配置反向代理
 proxy() {
