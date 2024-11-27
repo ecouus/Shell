@@ -912,7 +912,7 @@ while true; do
                                 echo "0.返回主菜单"
                                 read -p "请输入你的选择：" user_choice
                                 name=linkding
-                                port=9090
+                                port=1216
                                 case $user_choice in
                                     1)
                                         install_docker
