@@ -912,9 +912,9 @@ while true; do
                                 echo "0.返回主菜单"
                                 read -p "请输入你的选择：" user_choice
                                 name=linkding
-                                port=1216
                                 case $user_choice in
                                     1)
+                                        read -p "请输入可用端口：" port
                                         install_docker
                                         iptables_open                     
                                         # 检查名为sun-panel的容器是否存在
