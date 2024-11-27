@@ -1509,7 +1509,7 @@ while true; do
                 echo "此页面脚本均收集自网络 请此行甄别"
                 echo "1.Kejilion                 2.IPQuality(xykt)"
                 echo "3.可视化路由查询(sjlleo)    4.极光面板       "
-                echo " "  
+                echo "5.融合怪 "  
                 echo "0.返回主菜单   "
                 read -p "请输入你的选择：" choice
                     case $choice in          
@@ -1524,6 +1524,9 @@ while true; do
                             ;; 
                         4)
                             bash <(curl -fsSL https://raw.githubusercontent.com/Aurora-Admin-Panel/deploy/main/install.sh)
+                            ;; 
+                        5)
+                            bash <(wget -qO- ecs.0s.hk)
                             ;; 
                         0)  
                             eco
