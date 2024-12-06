@@ -49,6 +49,7 @@ install_or_update() {
     # 安装组件
     apt update && \
     apt install nginx -y && \
+    apt install net-tools -y && \
     apt install certbot python3-certbot-nginx -y
 
     systemctl enable nginx
