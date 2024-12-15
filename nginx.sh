@@ -68,25 +68,22 @@ install_or_update() {
 proxy() {
     clear
     check_ip_address
-    echo "本机IP:$ip_address"
-    read -p "输入域名: " domain
-    read -p "输入反代IP: " ip
-    read -p "输入反代端口: " port
+    echo "本机IP: $ip_address"
 
-    # 1. 下载并配置nginx
-    mkdir -p $NGINX_DIR
+    read -p "输入域名: " domain
+    read -p "输入反代目标 (如 1.1.1.1:123 或 http(s)://a.com): " target
+
+    mkdir -p "$NGINX_DIR"
     wget -O "$NGINX_DIR/${domain}" "$PROXY_URL" || { echo -e "${RED}下载配置失败${NC}"; return 1; }
-    sed -i "s/example/${domain}/g; s/127.0.0.1:0000/${ip}:${port}/g" "$NGINX_DIR/${domain}"
+    sed -i "s/example/${domain}/g; s|127.0.0.1:0000|${target}|g" "$NGINX_DIR/${domain}"
     ln -sf "$NGINX_DIR/${domain}" "/etc/nginx/sites-enabled/${domain}"
 
-    # 2. 检查并应用配置
     nginx -t && systemctl reload nginx || { echo -e "${RED}Nginx配置错误${NC}"; return 1; }
 
-    # 3. 配置SSL
     certbot --nginx -d ${domain} --non-interactive --agree-tos --email admin@${domain} --redirect || \
     { echo -e "${RED}SSL配置失败${NC}"; return 1; }
 
-    echo -e "${GREEN}配置完成: https://${domain} -> ${ip}:${port}${NC}"
+    echo -e "${GREEN}配置完成: https://${domain} -> ${target}${NC}"
 }
 
 # 配置重定向
@@ -94,8 +91,8 @@ redirect() {
     clear
     check_ip_address
     echo "本机IP:$ip_address"
-    read -p "输入域名: " domain
-    read -p "输入目标URL: " url
+    read -p "输入域名（例如a.com）: " domain
+    read -p "输入目标URL(例如https://b.com): " url
 
     mkdir -p $NGINX_DIR
     wget -O "$NGINX_DIR/${domain}" "$REDIRECT_URL"
