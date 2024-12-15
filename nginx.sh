@@ -71,7 +71,7 @@ proxy() {
     echo "本机IP: $ip_address"
 
     read -p "输入域名: " domain
-    read -p "输入反代目标 (如 1.1.1.1:123 或 http(s)://a.com): " target
+    read -p "输入反代目标 (如 1.1.1.1:123 或 a.com): " target
 
     mkdir -p "$NGINX_DIR"
     wget -O "$NGINX_DIR/${domain}" "$PROXY_URL" || { echo -e "${RED}下载配置失败${NC}"; return 1; }
