@@ -70,12 +70,21 @@ proxy() {
     check_ip_address
     echo "本机IP: $ip_address"
 
-    read -p "输入域名: " domain
-    read -p "输入反代目标 (如 1.1.1.1:123 或 a.com): " target
+    read -p "输入域名 (例如a.com):: " domain
+    read -p "输入反代目标 (例如 1.1.1.1:123 或 b.com): " target
 
     mkdir -p "$NGINX_DIR"
     wget -O "$NGINX_DIR/${domain}" "$PROXY_URL" || { echo -e "${RED}下载配置失败${NC}"; return 1; }
-    sed -i "s/example/${domain}/g; s|127.0.0.1:0000|${target}|g" "$NGINX_DIR/${domain}"
+
+    # 智能判断反代目标是否为 IP+端口或域名
+    if [[ "$target" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+$ ]]; then
+        # 如果是 IP:端口，保留原始 proxy_set_header Host $host;
+        sed -i "s/example/${domain}/g; s|127.0.0.1:0000|${target}|g" "$NGINX_DIR/${domain}"
+    else
+        # 如果是域名，修改 proxy_set_header Host 为目标域名
+        sed -i "s/example/${domain}/g; s|127.0.0.1:0000|${target}|g; s|proxy_set_header Host \$host;|proxy_set_header Host ${target};|g" "$NGINX_DIR/${domain}"
+    fi
+
     ln -sf "$NGINX_DIR/${domain}" "/etc/nginx/sites-enabled/${domain}"
 
     nginx -t && systemctl reload nginx || { echo -e "${RED}Nginx配置错误${NC}"; return 1; }
@@ -86,17 +95,18 @@ proxy() {
     echo -e "${GREEN}配置完成: https://${domain} -> ${target}${NC}"
 }
 
+
 # 配置重定向
 redirect() {
     clear
     check_ip_address
     echo "本机IP:$ip_address"
     read -p "输入域名（例如a.com）: " domain
-    read -p "输入目标URL(例如https://b.com): " url
+    read -p "输入目标URL(例如b.com): " url
 
     mkdir -p $NGINX_DIR
     wget -O "$NGINX_DIR/${domain}" "$REDIRECT_URL"
-    sed -i "s/example.com/${domain}/g; s|https://baidu.com|${url}|g" "$NGINX_DIR/${domain}"
+    sed -i "s/example.com/${domain}/g; s|targeturl.com|${url}|g" "$NGINX_DIR/${domain}"
     ln -sf "$NGINX_DIR/${domain}" "/etc/nginx/sites-enabled/${domain}"
 
     nginx -t && systemctl reload nginx || { echo -e "${RED}Nginx配置错误${NC}"; return 1; }
