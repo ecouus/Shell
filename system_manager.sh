@@ -87,7 +87,7 @@ fail2ban_menu() {
                 systemctl enable --now fail2ban
                 systemctl enable --now rsyslog
                 
-                # 提示用户输入 SSH 端口号，默认为 ssh
+                # 提示用户输入 SSH 端口号，默认为 22
                 echo -e "${YELLOW}请输入要保护的 SSH 端口号（默认为 'ssh'）：${RESET}"
                 read -p "SSH 端口号: " ssh_port
                 ssh_port=${ssh_port:-ssh} # 如果用户未输入，使用默认值 'ssh'
