@@ -157,8 +157,8 @@ bark_menu() {
                 # 获取用户输入
                 echo -n "请输入Bark服务器地址(例如: https://api.day.app): "
                 read bark_url
-                echo -n "请输入Bark Token: "
-                read bark_token
+                echo -n "请输入Bark Key: "
+                read bark_Key
                 echo -n "请输入服务器名称: "
                 read server_name
                 
@@ -167,7 +167,7 @@ bark_menu() {
                 cat > /root/ecouu/ssh_notify.sh << EOF
 #!/bin/bash
 BARK_URL="$bark_url/push"
-DEVICE_KEY="$bark_token"
+DEVICE_KEY="$bark_Key"
 SERVER_NAME="$server_name"
 icon_url="https://i.miji.bid/2025/01/17/6f93b0af0524337c5fc67cff8a1d8a4c.png"
 
