@@ -1,6 +1,6 @@
 # 开源可视化一键脚本
 ![83390203f260fe6927e4097469ebc8ff.png](https://i.miji.bid/2025/01/17/83390203f260fe6927e4097469ebc8ff.png)
-![IMG_6387.jpeg](https://image.dooo.ng/c/2024/09/11/66e07b3c8e9fd.webp)
+![d9cb3ac9adb53d10b6bebf3c3090e7d5.png](https://i.miji.bid/2025/01/17/d9cb3ac9adb53d10b6bebf3c3090e7d5.png)
 ## 安装指南
 ## 1.安装weget curl依赖包  
 *Debian/Ubuntu*  
