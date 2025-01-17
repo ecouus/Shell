@@ -81,7 +81,6 @@ fail2ban_menu() {
         case $choice in
             1)
                 # 安装 Fail2Ban
-                apt update && apt upgrade -y
                 apt install fail2ban rsyslog -y
                 
                 systemctl enable --now fail2ban
