@@ -96,7 +96,7 @@ while true; do
     echo -e "\033[38;5;208m菜单栏 \033[0m"
     echo "------------------------"
     echo "1.Docker百宝箱     2.工具箱 "
-    echo "3.Nginx配置 "
+    echo "3.Nginx配置        4.系统安全 "
     echo " "
     echo "0.退出脚本         88.更新脚本"
     read -p "请输入你的选择：" choice
@@ -1545,6 +1545,10 @@ while true; do
             3)                  
                 clear
                 curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/nginx.sh && sudo chmod +x nginx.sh && sudo ./nginx.sh
+                ;;
+            4)                  
+                clear
+                curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/system_manager.sh && sudo chmod +x system_manager.sh && sudo ./system_manager.sh
                 ;;
             0)                  
                 clear
