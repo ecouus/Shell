@@ -23,7 +23,7 @@ MONITOR_SETTINGS = {
 
 # 监控的网站和路径
 MONITOR_SITES = {
-    "example.com": ["/dashboard/login"],
+    "example.com": ["/dashboard/login", "/admin"],
     # 添加更多网站和路径
 }
 
