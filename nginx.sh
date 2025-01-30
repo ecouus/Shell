@@ -194,18 +194,23 @@ manage() {
         if grep -q "proxy_pass" "$conf"; then
             target=$(grep "proxy_pass" "$conf" | awk '{print $2}' | tr -d ';')
             config_type="反代至: $target"
-        elif grep -q "return 301" "$conf"; then
-            target=$(grep "return 301" "$conf" | awk '{print $3}' | cut -d'$' -f1)
+        elif grep -q "root" "$conf" && ! grep -q "^[[:space:]]*root[[:space:]]/var/www/html;" "$conf"; then
+            # 如果有root指令且不是默认的/var/www/html路径，则为普通站点
+            root_path=$(grep "root" "$conf" | head -n1 | awk '{print $2}' | tr -d ';')
+            config_type="普通站点 (根目录: $root_path)"
+        elif grep -q "return 301" "$conf" && ! grep -q "\$host\$request_uri" "$conf" && ! grep -q "\$scheme://\$host\$request_uri" "$conf"; then
+            # 只有当return 301存在且不是SSL跳转时才认为是重定向
+            target=$(grep "return 301" "$conf" | grep -v "\$host" | awk '{print $3}' | tr -d ';')
             config_type="重定向至: $target"
         else
             config_type="普通站点"
         fi
         
-        # 获取证书续签时间
+        # 获取证书到期时间
         if [[ -n "${expiry_dates[$domain]}" ]]; then
-            echo "$count. $domain  > $config_type (距下次续签剩余: ${valid_days[$domain]} 天)"
+            echo "$domain  > $config_type (距离下次续签: ${valid_days[$domain]}天)"
         else
-            echo "$count. $domain  > $config_type (无SSL证书)"
+            echo "$domain  > $config_type (无SSL证书)"
         fi
     done
     
@@ -219,8 +224,7 @@ manage() {
             # 跳过已经在nginx配置中的域名
             [ -f "$NGINX_DIR/$domain" ] && continue
             if [[ -n "${expiry_dates[$domain]}" ]]; then
-                #echo "$domain (证书续签时间: ${expiry_dates[$domain]} (剩余: ${valid_days[$domain]} 天))"
-                echo "$domain (距下次续签剩余: ${valid_days[$domain]} 天)"
+                echo "$domain (距离下次续签: ${valid_days[$domain]}天)"
             fi
         done
     fi
