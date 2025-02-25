@@ -798,6 +798,325 @@ EOF
     read -n 1 -s -r -p "按任意键继续..."
 }
 
+# 添加流量阻断配置函数
+setup_block_option() {
+    clear
+    echo -e "${CYAN}=============================${PLAIN}"
+    echo -e "${CYAN}    流量超限阻断功能设置    ${PLAIN}"
+    echo -e "${CYAN}=============================${PLAIN}"
+    echo
+    
+    local block_config="$SCRIPT_DIR/block_config.ini"
+    local current_status="已禁用"
+    local current_type="nftables"
+    local current_action="reject"
+    
+    # 检查现有配置
+    if [ -f "$block_config" ]; then
+        source "$block_config"
+        [ "$BLOCK_ENABLED" = "true" ] && current_status="已启用"
+        [ -n "$BLOCK_TYPE" ] && current_type="$BLOCK_TYPE"
+        [ -n "$BLOCK_ACTION" ] && current_action="$BLOCK_ACTION"
+    fi
+    
+    echo -e "${YELLOW}流量超限阻断功能可以在端口流量超过限额时自动采取措施。${PLAIN}"
+    echo -e "${YELLOW}当前状态: ${current_status}${PLAIN}"
+    echo -e "${YELLOW}阻断方式: ${current_type}${PLAIN}"
+    echo -e "${YELLOW}阻断行为: ${current_action}${PLAIN}"
+    echo
+    
+    echo -e "${GREEN}1.${PLAIN} 启用/禁用阻断功能"
+    echo -e "${GREEN}2.${PLAIN} 设置阻断方式(nftables/iptables)"
+    echo -e "${GREEN}3.${PLAIN} 设置阻断行为(reject/drop)"
+    echo -e "${GREEN}0.${PLAIN} 返回主菜单"
+    echo
+    
+    read -p "请选择 [0-3]: " option
+    
+    case $option in
+        1)
+            if [ "$current_status" = "已启用" ]; then
+                read -p "确定要禁用阻断功能吗? (y/n): " confirm
+                if [[ $confirm =~ ^[Yy]$ ]]; then
+                    echo "BLOCK_ENABLED=false" > $block_config
+                    [ -n "$current_type" ] && echo "BLOCK_TYPE=$current_type" >> $block_config
+                    [ -n "$current_action" ] && echo "BLOCK_ACTION=$current_action" >> $block_config
+                    echo -e "${GREEN}阻断功能已禁用!${PLAIN}"
+                fi
+            else
+                read -p "确定要启用阻断功能吗? (y/n): " confirm
+                if [[ $confirm =~ ^[Yy]$ ]]; then
+                    echo "BLOCK_ENABLED=true" > $block_config
+                    [ -n "$current_type" ] && echo "BLOCK_TYPE=$current_type" >> $block_config
+                    [ -n "$current_action" ] && echo "BLOCK_ACTION=$current_action" >> $block_config
+                    echo -e "${GREEN}阻断功能已启用!${PLAIN}"
+                    
+                    # 创建或更新阻断脚本
+                    create_block_script
+                fi
+            fi
+            ;;
+        
+        2)
+            echo
+            echo -e "${YELLOW}请选择阻断方式:${PLAIN}"
+            echo -e "${GREEN}1.${PLAIN} nftables (推荐)"
+            echo -e "${GREEN}2.${PLAIN} iptables"
+            echo
+            
+            read -p "请选择 [1-2]: " block_type_option
+            
+            case $block_type_option in
+                1) current_type="nftables" ;;
+                2) current_type="iptables" ;;
+                *) echo -e "${RED}无效的选项，保持原有设置。${PLAIN}"; read -n 1 -s -r -p "按任意键继续..."; return ;;
+            esac
+            
+            # 更新配置
+            if [ -f "$block_config" ]; then
+                source "$block_config"
+                echo "BLOCK_ENABLED=$BLOCK_ENABLED" > $block_config
+            else
+                echo "BLOCK_ENABLED=false" > $block_config
+            fi
+            
+            echo "BLOCK_TYPE=$current_type" >> $block_config
+            [ -n "$current_action" ] && echo "BLOCK_ACTION=$current_action" >> $block_config
+            
+            echo -e "${GREEN}阻断方式已更新为 $current_type!${PLAIN}"
+            
+            # 创建或更新阻断脚本
+            create_block_script
+            ;;
+        
+        3)
+            echo
+            echo -e "${YELLOW}请选择阻断行为:${PLAIN}"
+            echo -e "${GREEN}1.${PLAIN} reject (向客户端发送拒绝连接消息)"
+            echo -e "${GREEN}2.${PLAIN} drop (直接丢弃数据包，不回应客户端)"
+            echo
+            
+            read -p "请选择 [1-2]: " block_action_option
+            
+            case $block_action_option in
+                1) current_action="reject" ;;
+                2) current_action="drop" ;;
+                *) echo -e "${RED}无效的选项，保持原有设置。${PLAIN}"; read -n 1 -s -r -p "按任意键继续..."; return ;;
+            esac
+            
+            # 更新配置
+            if [ -f "$block_config" ]; then
+                source "$block_config"
+                echo "BLOCK_ENABLED=$BLOCK_ENABLED" > $block_config
+            else
+                echo "BLOCK_ENABLED=false" > $block_config
+            fi
+            
+            [ -n "$current_type" ] && echo "BLOCK_TYPE=$current_type" >> $block_config
+            echo "BLOCK_ACTION=$current_action" >> $block_config
+            
+            echo -e "${GREEN}阻断行为已更新为 $current_action!${PLAIN}"
+            
+            # 创建或更新阻断脚本
+            create_block_script
+            ;;
+        
+        0)
+            return
+            ;;
+        
+        *)
+            echo -e "${RED}无效的选项!${PLAIN}"
+            ;;
+    esac
+    
+    echo
+    echo -e "${CYAN}=============================${PLAIN}"
+    echo
+    read -n 1 -s -r -p "按任意键继续..."
+}
+
+# 创建阻断脚本
+create_block_script() {
+    local block_script="$SCRIPT_DIR/traffic-block.sh"
+    
+    cat > $block_script << 'EOF'
+#!/bin/bash
+
+# 阻断脚本配置
+SCRIPT_DIR="/root/ecouu"
+BLOCK_CONFIG="$SCRIPT_DIR/block_config.ini"
+MONITOR_SCRIPT="$SCRIPT_DIR/traffic-monitor.sh"
+CONFIG_FILE="$SCRIPT_DIR/config.ini"
+BLOCK_LOG="$SCRIPT_DIR/logs/block.log"
+
+# 加载阻断配置
+if [ ! -f "$BLOCK_CONFIG" ]; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - 错误: 阻断配置文件不存在" >> $BLOCK_LOG
+    exit 1
+fi
+
+source "$BLOCK_CONFIG"
+
+# 检查阻断功能是否启用
+if [ "$BLOCK_ENABLED" != "true" ]; then
+    exit 0
+fi
+
+# 确保日志目录存在
+mkdir -p "$(dirname "$BLOCK_LOG")"
+
+# 使用nftables阻断端口
+block_port_nftables() {
+    local port="$1"
+    local action="${2:-$BLOCK_ACTION}"
+    
+    # 检查nftables表是否存在
+    if ! nft list table inet traffic_blocker &>/dev/null; then
+        nft add table inet traffic_blocker
+        nft add chain inet traffic_blocker input { type filter hook input priority 0 \; }
+        nft add chain inet traffic_blocker output { type filter hook output priority 0 \; }
+    fi
+    
+    # 检查该端口是否已经被阻断
+    if nft list table inet traffic_blocker | grep -q "tcp dport $port"; then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - 端口 $port 已经被阻断" >> $BLOCK_LOG
+        return
+    fi
+    
+    # 添加阻断规则
+    nft add rule inet traffic_blocker input tcp dport $port $action
+    nft add rule inet traffic_blocker output tcp sport $port $action
+    
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - 已使用nftables阻断端口 $port (行为: $action)" >> $BLOCK_LOG
+}
+
+# 使用iptables阻断端口
+block_port_iptables() {
+    local port="$1"
+    local action="${2:-$BLOCK_ACTION}"
+    
+    # 映射动作
+    local iptables_action="REJECT"
+    [ "$action" = "drop" ] && iptables_action="DROP"
+    
+    # 检查该端口是否已经被阻断
+    if iptables -C INPUT -p tcp --dport $port -j $iptables_action &>/dev/null; then
+        echo "$(date '+%Y-%m-%d %H:%M:%S') - 端口 $port 已经被阻断" >> $BLOCK_LOG
+        return
+    fi
+    
+    # 添加阻断规则
+    iptables -A INPUT -p tcp --dport $port -j $iptables_action
+    iptables -A OUTPUT -p tcp --sport $port -j $iptables_action
+    
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - 已使用iptables阻断端口 $port (行为: $action)" >> $BLOCK_LOG
+}
+
+# 解除端口阻断
+unblock_port() {
+    local port="$1"
+    
+    if [ "$BLOCK_TYPE" = "nftables" ]; then
+        # 删除nftables规则
+        if nft list table inet traffic_blocker &>/dev/null; then
+            nft delete rule inet traffic_blocker input handle $(nft -a list table inet traffic_blocker | grep "tcp dport $port" | grep -o 'handle [0-9]*' | awk '{print $2}') 2>/dev/null
+            nft delete rule inet traffic_blocker output handle $(nft -a list table inet traffic_blocker | grep "tcp sport $port" | grep -o 'handle [0-9]*' | awk '{print $2}') 2>/dev/null
+        fi
+    else
+        # 删除iptables规则
+        local iptables_action="REJECT"
+        [ "$BLOCK_ACTION" = "drop" ] && iptables_action="DROP"
+        
+        iptables -D INPUT -p tcp --dport $port -j $iptables_action 2>/dev/null
+        iptables -D OUTPUT -p tcp --sport $port -j $iptables_action 2>/dev/null
+    fi
+    
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - 已解除端口 $port 的阻断" >> $BLOCK_LOG
+}
+
+# 检查并阻断超限端口
+check_and_block() {
+    local output=$($MONITOR_SCRIPT)
+    local current_port=""
+    local current_user=""
+    local block_status="unblocked"  # 用于跟踪阻断状态
+    
+    # 解析输出，查找超限的端口
+    while IFS= read -r line; do
+        # 提取端口号
+        if [[ $line =~ 端口:\ ([0-9]+) ]]; then
+            current_port="${BASH_REMATCH[1]}"
+            block_status="unblocked"  # 重置阻断状态
+        fi
+        
+        # 提取用户名
+        if [[ $line =~ \[监控\ (.*)\] ]]; then
+            current_user="${BASH_REMATCH[1]}"
+        fi
+        
+        # 检查流量限制状态
+        if [[ $line =~ 流量使用:\ ([0-9.]+)GB\ /\ ([0-9.]+)GB\ \(([0-9.]+)%\) ]]; then
+            local used="${BASH_REMATCH[1]}"
+            local limit="${BASH_REMATCH[2]}"
+            local percent="${BASH_REMATCH[3]}"
+            
+            # 检查是否超过限额
+            if (( $(echo "$percent >= 100" | bc -l) )); then
+                echo "$(date '+%Y-%m-%d %H:%M:%S') - 端口 $current_port ($current_user) 流量已超限: ${used}GB/${limit}GB" >> $BLOCK_LOG
+                
+                # 根据配置选择阻断方法
+                if [ "$BLOCK_TYPE" = "nftables" ]; then
+                    block_port_nftables $current_port
+                else
+                    block_port_iptables $current_port
+                fi
+                
+                block_status="blocked"
+            fi
+        fi
+        
+        # 检查流量状态行
+        if [[ $line =~ 状态:\ (.*) && "$block_status" != "blocked" ]]; then
+            local status="${BASH_REMATCH[1]}"
+            # 如果已标记为超限但流量实际未超，则解除阻断
+            if [[ "$status" =~ "正常" ]]; then
+                unblock_port $current_port
+            fi
+        fi
+    done <<< "$output"
+}
+
+# 保存永久规则
+save_rules() {
+    if [ "$BLOCK_TYPE" = "nftables" ]; then
+        nft list ruleset > /etc/nftables.conf 2>/dev/null
+    else
+        if command -v iptables-save &>/dev/null; then
+            iptables-save > /etc/iptables/rules.v4 2>/dev/null || iptables-save > /etc/iptables.rules 2>/dev/null
+        fi
+    fi
+}
+
+# 主函数
+main() {
+    check_and_block
+    save_rules
+}
+
+main
+EOF
+    
+    chmod +x $block_script
+    
+    # 添加定时任务，每5分钟执行一次
+    if ! crontab -l 2>/dev/null | grep -q "traffic-block.sh"; then
+        (crontab -l 2>/dev/null; echo "*/5 * * * * $block_script > /dev/null 2>&1") | crontab -
+        echo -e "${GREEN}已添加定时任务，每5分钟检查一次流量限额并执行阻断策略。${PLAIN}"
+    fi
+}
+
+
 # 端口管理菜单
 port_management() {
     while true; do
@@ -832,19 +1151,23 @@ port_management() {
 show_menu() {
     clear
     echo -e "${CYAN}=============================${PLAIN}"
-    echo -e "${CYAN}    端口流量监控系统 v1.0    ${PLAIN}"
+    echo -e "${CYAN}   Linux流量监控与限制系统   ${PLAIN}"
     echo -e "${CYAN}=============================${PLAIN}"
     echo
-    echo -e "${GREEN}1.${PLAIN} 查看所有端口流量状态"
-    echo -e "${GREEN}2.${PLAIN} 端口管理"
-    echo -e "${GREEN}3.${PLAIN} 设置Telegram通知"
-    echo -e "${GREEN}4.${PLAIN} 重新安装/更新监控脚本"
-    echo -e "${RED}9.${PLAIN} 卸载监控系统"
-    echo -e "${YELLOW}0.${PLAIN} 退出脚本"
+    echo -e "${GREEN}1.${PLAIN} 显示所有端口流量状态"
+    echo -e "${GREEN}2.${PLAIN} 查看端口监控列表"
+    echo -e "${GREEN}3.${PLAIN} 添加端口监控"
+    echo -e "${GREEN}4.${PLAIN} 删除端口监控"
+    echo -e "${GREEN}5.${PLAIN} 重置流量计数器"
+    echo -e "${GREEN}6.${PLAIN} 设置Telegram通知"
+    # 在这里添加新的菜单选项
+    echo -e "${GREEN}7.${PLAIN} 流量超限阻断设置"
+    echo -e "${GREEN}0.${PLAIN} 退出脚本"
     echo
     echo -e "${CYAN}=============================${PLAIN}"
     echo
 }
+
 
 # 卸载系统
 uninstall_system() {
@@ -893,29 +1216,44 @@ uninstall_system() {
 }
 
 # 主函数
-main() {
-    check_root
-    check_installation
-    
-    while true; do
-        show_menu
-        read -p "请选择 [0-9]: " option
-        
-        case $option in
-            1) show_all_status ;;
-            2) port_management ;;
-            3) setup_telegram ;;
-            4) install_monitor; echo -e "${GREEN}监控脚本已更新!${PLAIN}"; read -n 1 -s -r -p "按任意键继续..." ;;
-            9) uninstall_system ;;
-            0) 
-                clear
-                echo -e "${GREEN}感谢使用，再见!${PLAIN}"
-                exit 0
-                ;;
-            *) echo -e "${RED}无效的选项!${PLAIN}"; read -n 1 -s -r -p "按任意键继续..." ;;
-        esac
-    done
-}
+check_root
+check_installation
 
-# 开始执行
-main
+while true; do
+    show_menu
+    read -p "请选择一个选项 [0-7]: " choice
+    
+    case $choice in
+        1)
+            show_all_status
+            ;;
+        2)
+            show_port_list
+            read -n 1 -s -r -p "按任意键继续..."
+            ;;
+        3)
+            add_port_monitor
+            ;;
+        4)
+            delete_port_monitor
+            ;;
+        5)
+            reset_counter
+            ;;
+        6)
+            setup_telegram
+            ;;
+        7)
+            setup_block_option  # 添加这一行处理新的选项
+            ;;
+        0)
+            echo
+            echo -e "${GREEN}感谢使用，再见!${PLAIN}"
+            exit 0
+            ;;
+        *)
+            echo -e "${RED}错误: 请输入有效的选项 [0-7]${PLAIN}"
+            sleep 1
+            ;;
+    esac
+done
