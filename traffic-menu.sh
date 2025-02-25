@@ -470,15 +470,11 @@ fi
 send_message() {
     local chat_id="$1"
     local text="$2"
-    local parse_mode="HTML"
     
-    # 对HTML特殊字符进行转义
-    text=$(echo "$text" | sed 's/</\&lt;/g' | sed 's/>/\&gt;/g')
-    
+    # 尝试直接发送文本，不使用HTML格式
     curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
         -d chat_id="${chat_id}" \
-        -d text="${text}" \
-        -d parse_mode="${parse_mode}" > /dev/null
+        -d text="${text}" > /dev/null
 }
 
 # 处理 /status 命令
