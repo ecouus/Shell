@@ -15,6 +15,11 @@ CONFIG_FILE="$SCRIPT_DIR/config.ini"
 TELEGRAM_CONFIG="$SCRIPT_DIR/telegram.conf"
 GITHUB_URL="https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/traffic-monitor.sh"
 
+# 新增：自动阻断相关配置文件
+BLOCK_CONFIG="$SCRIPT_DIR/block.conf"
+# 默认不开启自动阻断，默认使用 nftables 方式
+[ -f "$BLOCK_CONFIG" ] && source "$BLOCK_CONFIG" || { AUTO_BLOCK_ENABLED=0; BLOCK_METHOD="nft"; }
+
 # 检查root权限
 check_root() {
     if [ "$(id -u)" -ne 0 ]; then
@@ -588,8 +593,8 @@ show_help() {
     help_message+="/status [端口] - 查看特定端口流量状态\n"
     help_message+="/add [端口] [限额GB] [用户名] - 添加新的端口监控\n"
     help_message+="/rm [端口] - 删除端口监控\n"
-    help_message+="/reset [端口] - 重置特定端口的流量计数器\n"
-    help_message+="/reset_all - 重置所有端口的流量计数器\n"
+    help_message+="/reset [端口] - 重置特定端口流量计数器\n"
+    help_message+="/reset_all - 重置所有计数器\n"
     help_message+="/help - 显示此帮助信息"
     
     send_message "$chat_id" "$help_message"
@@ -783,114 +788,164 @@ EOF
             echo -e "${GREEN}Telegram通知已禁用!${PLAIN}"
             ;;
         
-        0)
-            return
+        # 新增选项5：设置流量超限自动阻断功能
+        5)
+            toggle_auto_block() {
+                # 加载现有配置（若存在）
+                if [ -f "$BLOCK_CONFIG" ]; then
+                    source "$BLOCK_CONFIG"
+                else
+                    AUTO_BLOCK_ENABLED=0
+                    BLOCK_METHOD="nft"
+                fi
+                
+                echo -e "${CYAN}当前自动阻断功能: $( [ "$AUTO_BLOCK_ENABLED" -eq 1 ] && echo "启用" || echo "禁用")${PLAIN}"
+                echo -e "${CYAN}当前阻断方法: ${BLOCK_METHOD}${PLAIN}"
+                echo -e "${YELLOW}请选择操作:${PLAIN}"
+                echo -e "${GREEN}1.${PLAIN} 启用自动阻断"
+                echo -e "${GREEN}2.${PLAIN} 禁用自动阻断"
+                echo -e "${GREEN}3.${PLAIN} 切换阻断方法 (当前: ${BLOCK_METHOD})"
+                echo -e "${GREEN}0.${PLAIN} 返回主菜单"
+                read -p "请选择 [0-3]: " choice
+                case $choice in
+                    1) AUTO_BLOCK_ENABLED=1 ;;
+                    2) AUTO_BLOCK_ENABLED=0 ;;
+                    3)
+                        if [ "$BLOCK_METHOD" == "nft" ]; then
+                            BLOCK_METHOD="iptables"
+                        else
+                            BLOCK_METHOD="nft"
+                        fi
+                        ;;
+                    0) return ;;
+                    *) echo -e "${RED}无效的选项!${PLAIN}"; return ;;
+                esac
+                
+                # 保存配置
+                cat > "$BLOCK_CONFIG" << EOF
+AUTO_BLOCK_ENABLED=$AUTO_BLOCK_ENABLED
+BLOCK_METHOD="$BLOCK_METHOD"
+EOF
+                echo -e "${GREEN}自动阻断设置已保存!${PLAIN}"
+                read -n 1 -s -r -p "按任意键继续..."
+            }
+            toggle_auto_block
+            ;;
+            
+        # 新增选项6：手动检查并阻断超限端口
+        6)
+            auto_block_check() {
+                if [ ! -f "$CONFIG_FILE" ]; then
+                    echo -e "${RED}配置文件不存在，无法检查端口。${PLAIN}"
+                    return
+                fi
+                
+                # 仅在自动阻断功能启用时才执行阻断操作
+                if [ "$AUTO_BLOCK_ENABLED" -ne 1 ]; then
+                    echo -e "${YELLOW}自动阻断功能未启用，请先在选项5中启用。${PLAIN}"
+                    read -n 1 -s -r -p "按任意键继续..."
+                    return
+                fi
+                
+                echo -e "${YELLOW}开始检查各端口流量状态...${PLAIN}"
+                while IFS=: read -r port limit_gb start_date user_name || [[ -n "$port" ]]; do
+                    # 跳过注释和空行
+                    [[ $port =~ ^#.*$ || -z $port ]] && continue
+                    # 获取流量状态，假设输出包含 “流量使用: usedGB / limitGB (percent%)”
+                    status_output=$(traffic-monitor status $port 2>/dev/null)
+                    # 提取百分比（这里依赖流量-monitor脚本的输出格式）
+                    percent=$(echo "$status_output" | grep -oP '\(([0-9.]+)%\)' | tr -d '()%')
+                    if [ -n "$percent" ] && [ $(echo "$percent >= 100" | bc -l) -eq 1 ]; then
+                        echo -e "${RED}端口 $port 流量已达 ${percent}% ，超过限额，正在阻断...${PLAIN}"
+                        block_port "$port"
+                    fi
+                done < "$CONFIG_FILE"
+                echo -e "${GREEN}检查完成!${PLAIN}"
+                read -n 1 -s -r -p "按任意键继续..."
+            }
+            
+            # 定义阻断函数，根据设置使用 nftables 或 iptables
+            block_port() {
+                local port=$1
+                if [ "$BLOCK_METHOD" == "nft" ]; then
+                    # 示例：在 inet filter 表中添加阻断规则（请根据实际nftables规则调整）
+                    nft add rule inet filter input tcp dport $port drop 2>/dev/null && \
+                    echo "已使用 nftables 阻断端口 $port" || \
+                    echo "端口 $port 可能已被阻断或阻断失败"
+                elif [ "$BLOCK_METHOD" == "iptables" ]; then
+                    iptables -A INPUT -p tcp --dport $port -j DROP 2>/dev/null && \
+                    echo "已使用 iptables 阻断端口 $port" || \
+                    echo "端口 $port 可能已被阻断或阻断失败"
+                else
+                    echo "未知的阻断方法。"
+                fi
+            }
+            
+            auto_block_check
             ;;
         
+        0)
+            clear
+            echo -e "${GREEN}感谢使用，再见!${PLAIN}"
+            exit 0
+            ;;
+        9)
+            uninstall_system() {
+                clear
+                echo -e "${CYAN}=============================${PLAIN}"
+                echo -e "${CYAN}      卸载流量监控系统      ${PLAIN}"
+                echo -e "${CYAN}=============================${PLAIN}"
+                echo
+                
+                echo -e "${RED}警告: 此操作将完全卸载流量监控系统，包括所有配置和日志！${PLAIN}"
+                read -p "确定要继续吗? (y/n): " confirm
+                
+                if [[ ! $confirm =~ ^[Yy]$ ]]; then
+                    echo -e "${YELLOW}操作已取消。${PLAIN}"
+                    echo
+                    echo -e "${CYAN}=============================${PLAIN}"
+                    read -n 1 -s -r -p "按任意键继续..."
+                    return
+                fi
+                
+                echo
+                echo -e "${YELLOW}正在卸载流量监控系统...${PLAIN}"
+                
+                # 清除nftables规则
+                if nft list table inet traffic_monitor &>/dev/null; then
+                    echo -e "${YELLOW}清除nftables规则...${PLAIN}"
+                    nft flush table inet traffic_monitor
+                    nft delete table inet traffic_monitor
+                fi
+                
+                # 删除定时任务
+                echo -e "${YELLOW}删除定时任务...${PLAIN}"
+                crontab -l 2>/dev/null | grep -v "traffic-" | crontab -
+                
+                # 删除文件
+                echo -e "${YELLOW}删除脚本和配置文件...${PLAIN}"
+                rm -f /usr/local/bin/traffic-monitor
+                rm -rf $SCRIPT_DIR
+                
+                echo -e "${GREEN}流量监控系统已成功卸载!${PLAIN}"
+                
+                echo
+                echo -e "${CYAN}=============================${PLAIN}"
+                echo
+                read -n 1 -s -r -p "按任意键继续..."
+            }
+            uninstall_system
+            ;;
         *)
             echo -e "${RED}无效的选项!${PLAIN}"
+            read -n 1 -s -r -p "按任意键继续..."
             ;;
     esac
     
     echo
     echo -e "${CYAN}=============================${PLAIN}"
     echo
-    read -n 1 -s -r -p "按任意键继续..."
-}
-
-# 端口管理菜单
-port_management() {
-    while true; do
-        clear
-        echo -e "${CYAN}=============================${PLAIN}"
-        echo -e "${CYAN}        端口管理菜单        ${PLAIN}"
-        echo -e "${CYAN}=============================${PLAIN}"
-        echo
-        echo -e "${GREEN}1.${PLAIN} 查看端口列表"
-        echo -e "${GREEN}2.${PLAIN} 添加新的端口监控"
-        echo -e "${GREEN}3.${PLAIN} 删除端口监控"
-        echo -e "${GREEN}4.${PLAIN} 重置流量计数器"
-        echo -e "${GREEN}0.${PLAIN} 返回主菜单"
-        echo
-        echo -e "${CYAN}=============================${PLAIN}"
-        echo
-        
-        read -p "请选择 [0-4]: " option
-        
-        case $option in
-            1) show_port_list; read -n 1 -s -r -p "按任意键继续..." ;;
-            2) add_port_monitor ;;
-            3) delete_port_monitor ;;
-            4) reset_counter ;;
-            0) return ;;
-            *) echo -e "${RED}无效的选项!${PLAIN}"; read -n 1 -s -r -p "按任意键继续..." ;;
-        esac
-    done
-}
-
-# 主菜单
-show_menu() {
-    clear
-    echo -e "${CYAN}=============================${PLAIN}"
-    echo -e "${CYAN}    端口流量监控系统 v1.0    ${PLAIN}"
-    echo -e "${CYAN}=============================${PLAIN}"
-    echo
-    echo -e "${GREEN}1.${PLAIN} 查看所有端口流量状态"
-    echo -e "${GREEN}2.${PLAIN} 端口管理"
-    echo -e "${GREEN}3.${PLAIN} 设置Telegram通知"
-    echo -e "${GREEN}4.${PLAIN} 重新安装/更新监控脚本"
-    echo -e "${RED}9.${PLAIN} 卸载监控系统"
-    echo -e "${YELLOW}0.${PLAIN} 退出脚本"
-    echo
-    echo -e "${CYAN}=============================${PLAIN}"
-    echo
-}
-
-# 卸载系统
-uninstall_system() {
-    clear
-    echo -e "${CYAN}=============================${PLAIN}"
-    echo -e "${CYAN}      卸载流量监控系统      ${PLAIN}"
-    echo -e "${CYAN}=============================${PLAIN}"
-    echo
-    
-    echo -e "${RED}警告: 此操作将完全卸载流量监控系统，包括所有配置和日志！${PLAIN}"
-    read -p "确定要继续吗? (y/n): " confirm
-    
-    if [[ ! $confirm =~ ^[Yy]$ ]]; then
-        echo -e "${YELLOW}操作已取消。${PLAIN}"
-        echo
-        echo -e "${CYAN}=============================${PLAIN}"
-        read -n 1 -s -r -p "按任意键继续..."
-        return
-    fi
-    
-    echo
-    echo -e "${YELLOW}正在卸载流量监控系统...${PLAIN}"
-    
-    # 清除nftables规则
-    if nft list table inet traffic_monitor &>/dev/null; then
-        echo -e "${YELLOW}清除nftables规则...${PLAIN}"
-        nft flush table inet traffic_monitor
-        nft delete table inet traffic_monitor
-    fi
-    
-    # 删除定时任务
-    echo -e "${YELLOW}删除定时任务...${PLAIN}"
-    crontab -l 2>/dev/null | grep -v "traffic-" | crontab -
-    
-    # 删除文件
-    echo -e "${YELLOW}删除脚本和配置文件...${PLAIN}"
-    rm -f /usr/local/bin/traffic-monitor
-    rm -rf $SCRIPT_DIR
-    
-    echo -e "${GREEN}流量监控系统已成功卸载!${PLAIN}"
-    
-    echo
-    echo -e "${CYAN}=============================${PLAIN}"
-    echo
-    read -n 1 -s -r -p "按任意键继续..."
-}
+done
 
 # 主函数
 main() {
@@ -898,14 +953,67 @@ main() {
     check_installation
     
     while true; do
+        show_menu() {
+            clear
+            echo -e "${CYAN}=============================${PLAIN}"
+            echo -e "${CYAN}    端口流量监控系统 v1.0    ${PLAIN}"
+            echo -e "${CYAN}=============================${PLAIN}"
+            echo
+            echo -e "${GREEN}1.${PLAIN} 查看所有端口流量状态"
+            echo -e "${GREEN}2.${PLAIN} 端口管理"
+            echo -e "${GREEN}3.${PLAIN} 设置Telegram通知"
+            echo -e "${GREEN}4.${PLAIN} 重新安装/更新监控脚本"
+            echo -e "${GREEN}5.${PLAIN} 设置流量超限自动阻断功能"
+            echo -e "${GREEN}6.${PLAIN} 手动检查并阻断超限端口"
+            echo -e "${RED}9.${PLAIN} 卸载监控系统"
+            echo -e "${YELLOW}0.${PLAIN} 退出脚本"
+            echo
+            echo -e "${CYAN}=============================${PLAIN}"
+            echo
+        }
+        
         show_menu
         read -p "请选择 [0-9]: " option
         
         case $option in
             1) show_all_status ;;
-            2) port_management ;;
+            2) port_management() {
+                    while true; do
+                        clear
+                        echo -e "${CYAN}=============================${PLAIN}"
+                        echo -e "${CYAN}        端口管理菜单        ${PLAIN}"
+                        echo -e "${CYAN}=============================${PLAIN}"
+                        echo
+                        echo -e "${GREEN}1.${PLAIN} 查看端口列表"
+                        echo -e "${GREEN}2.${PLAIN} 添加新的端口监控"
+                        echo -e "${GREEN}3.${PLAIN} 删除端口监控"
+                        echo -e "${GREEN}4.${PLAIN} 重置流量计数器"
+                        echo -e "${GREEN}0.${PLAIN} 返回主菜单"
+                        echo
+                        echo -e "${CYAN}=============================${PLAIN}"
+                        echo
+                        read -p "请选择 [0-4]: " sub_option
+                        case $sub_option in
+                            1) show_port_list; read -n 1 -s -r -p "按任意键继续..." ;;
+                            2) add_port_monitor ;;
+                            3) delete_port_monitor ;;
+                            4) reset_counter ;;
+                            0) break ;;
+                            *) echo -e "${RED}无效的选项!${PLAIN}"; read -n 1 -s -r -p "按任意键继续..." ;;
+                        esac
+                    done
+                }
+                port_management ;;
             3) setup_telegram ;;
             4) install_monitor; echo -e "${GREEN}监控脚本已更新!${PLAIN}"; read -n 1 -s -r -p "按任意键继续..." ;;
+            5) 
+                # 调用自动阻断功能设置
+                toggle_auto_block
+                ;;
+            6)
+                # 手动检查并阻断超限端口
+                auto_block_check
+                ;;
             9) uninstall_system ;;
             0) 
                 clear
