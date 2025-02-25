@@ -1162,6 +1162,7 @@ show_menu() {
     echo -e "${GREEN}6.${PLAIN} 设置Telegram通知"
     # 在这里添加新的菜单选项
     echo -e "${GREEN}7.${PLAIN} 流量超限阻断设置"
+    echo -e "${RED}9.${PLAIN} 卸载监控系统"
     echo -e "${GREEN}0.${PLAIN} 退出脚本"
     echo
     echo -e "${CYAN}=============================${PLAIN}"
@@ -1244,8 +1245,11 @@ while true; do
             setup_telegram
             ;;
         7)
-            setup_block_option  # 添加这一行处理新的选项
+            setup_block_option
             ;;
+        9)
+            uninstall_system
+            ;;       
         0)
             echo
             echo -e "${GREEN}感谢使用，再见!${PLAIN}"
