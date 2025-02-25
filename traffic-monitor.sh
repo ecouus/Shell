@@ -274,7 +274,7 @@ check_traffic() {
     echo "统计开始日期: $start_date (已运行 $days_running 天)"
     echo "流量使用: ${total_gb}GB / ${limit_gb}GB (${usage_percent}%)"
     echo "每日平均使用: ${daily_avg_gb}GB"
-    echo "按当前使用速率，剩余流量可用天数: ${days_left}"
+    #echo "按当前使用速率，剩余流量可用天数: ${days_left}"
     
     # 检查是否超出限制
     if [ $(echo "$total_bytes > $limit_bytes" | bc) -eq 1 ]; then
