@@ -234,10 +234,16 @@ check_traffic() {
         total_gb="0$total_gb"
     fi
     
+
     # 计算使用百分比
     local usage_percent=0
     if [ $limit_bytes -gt 0 ]; then
         usage_percent=$(echo "scale=2; $total_bytes*100/$limit_bytes" | bc)
+        
+        # 确保小数点前有0
+        if [[ $usage_percent =~ ^\. ]]; then
+            usage_percent="0$usage_percent"
+        fi
     fi
     
     # 计算每日平均使用量
