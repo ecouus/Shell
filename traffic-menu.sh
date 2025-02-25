@@ -553,6 +553,7 @@ view_logs() {
 }
 
 # 设置系统启动时自动加载
+# 设置系统启动时自动加载
 setup_autostart() {
     clear
     echo -e "${CYAN}=============================${PLAIN}"
@@ -591,8 +592,65 @@ EOF
     systemctl daemon-reload
     systemctl enable traffic-monitor.service
     
+    # 创建流量告警通知脚本
+    echo -e "${YELLOW}创建流量告警通知脚本...${PLAIN}"
+    cat > "$SCRIPT_DIR/traffic-alert.sh" << 'SCRIPT_EOF'
+#!/bin/bash
+
+# 加载配置
+SCRIPT_DIR="/root/ecouu"
+CONFIG_FILE="$SCRIPT_DIR/config.ini"
+ALERT_CONFIG_FILE="$SCRIPT_DIR/alert_config.ini"
+
+# 加载告警配置
+source $ALERT_CONFIG_FILE 2>/dev/null
+
+# 检查配置是否完整
+if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ] || [ -z "$ALERT_THRESHOLD" ]; then
+    exit 0
+fi
+
+# 发送Telegram通知
+send_telegram_alert() {
+    local message="$1"
+    curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+         -d "chat_id=$TELEGRAM_CHAT_ID" \
+         -d "text=$message" > /dev/null
+}
+
+# 从流量监控脚本获取详细信息
+while IFS=: read -r port limit_gb start_date user_name || [[ -n "$port" ]]; do
+    # 跳过注释和空行
+    [[ $port =~ ^#.*$ || -z $port ]] && continue
+    
+    # 获取流量状态
+    status=$(traffic-monitor status $port)
+    
+    # 解析流量使用百分比
+    usage_percent=$(echo "$status" | grep "流量使用:" | grep -oP '\(\K[^%]+')
+    
+    # 检查是否超过阈值
+    if (( $(echo "$usage_percent >= $ALERT_THRESHOLD" | bc -l) )); then
+        message="⚠️ 流量告警 ⚠️
+端口: $port
+用户: $user_name
+已使用流量: $usage_percent%
+限额: $limit_gb GB
+开始日期: $start_date"
+        
+        send_telegram_alert "$message"
+    fi
+done < $CONFIG_FILE
+SCRIPT_EOF
+
+    # 设置脚本权限
+    chmod +x "$SCRIPT_DIR/traffic-alert.sh"
+
+    # 创建每小时检查的定时任务
+    (crontab -l 2>/dev/null | grep -v "traffic-alert.sh" ; echo "0 * * * * $SCRIPT_DIR/traffic-alert.sh > /dev/null 2>&1") | crontab -
+    
     echo -e "${GREEN}系统启动自动加载配置完成!${PLAIN}"
-    echo -e "${GREEN}服务已启用，将在系统重启后自动加载监控规则。${PLAIN}"
+    echo -e "${GREEN}服务已启用，将在系统重启后自动加载监控规则和流量告警。${PLAIN}"
     
     echo
     echo -e "${CYAN}=============================${PLAIN}"
@@ -653,6 +711,74 @@ uninstall_system() {
     
     exit 0
 }
+# 设置Telegram流量告警
+setup_traffic_alert() {
+    clear
+    echo -e "${CYAN}=============================${PLAIN}"
+    echo -e "${CYAN}       流量报警设置       ${PLAIN}"
+    echo -e "${CYAN}=============================${PLAIN}"
+    echo
+    
+    echo -e "${YELLOW}流量报警设置选项:${PLAIN}"
+    echo -e "${GREEN}1.${PLAIN} 设置Telegram Bot通知"
+    echo -e "${GREEN}2.${PLAIN} 配置流量报警阈值"
+    echo -e "${GREEN}3.${PLAIN} 查看当前报警配置"
+    echo -e "${GREEN}0.${PLAIN} 返回主菜单"
+    echo
+    
+    read -p "请选择 [0-3]: " option
+    
+    case $option in
+        1)
+            read -p "请输入Telegram Bot Token: " bot_token
+            read -p "请输入Telegram Chat ID: " chat_id
+            
+            # 创建或更新警报配置文件
+            mkdir -p $SCRIPT_DIR
+            cat > $ALERT_CONFIG_FILE << EOF
+TELEGRAM_BOT_TOKEN=$bot_token
+TELEGRAM_CHAT_ID=$chat_id
+EOF
+            echo -e "${GREEN}Telegram Bot配置已保存!${PLAIN}"
+            ;;
+        2)
+            read -p "请输入流量报警阈值 (百分比, 默认90): " alert_threshold
+            
+            # 默认90%
+            if [ -z "$alert_threshold" ]; then
+                alert_threshold=90
+            fi
+            
+            # 追加或更新阈值配置
+            if grep -q "ALERT_THRESHOLD" $ALERT_CONFIG_FILE 2>/dev/null; then
+                sed -i "s/ALERT_THRESHOLD=.*/ALERT_THRESHOLD=$alert_threshold/" $ALERT_CONFIG_FILE
+            else
+                echo "ALERT_THRESHOLD=$alert_threshold" >> $ALERT_CONFIG_FILE
+            fi
+            
+            echo -e "${GREEN}流量报警阈值已设置为 $alert_threshold%!${PLAIN}"
+            ;;
+        3)
+            echo -e "${YELLOW}当前报警配置:${PLAIN}"
+            if [ -f "$ALERT_CONFIG_FILE" ]; then
+                cat $ALERT_CONFIG_FILE
+            else
+                echo -e "${YELLOW}尚未配置报警设置。${PLAIN}"
+            fi
+            ;;
+        0)
+            return
+            ;;
+        *)
+            echo -e "${RED}无效的选项!${PLAIN}"
+            ;;
+    esac
+    
+    echo
+    echo -e "${CYAN}=============================${PLAIN}"
+    read -n 1 -s -r -p "按任意键继续..."
+    echo
+}
 
 # 主菜单
 show_menu() {
@@ -672,6 +798,7 @@ show_menu() {
     echo -e "${GREEN}  9.${PLAIN} 查看流量日志"
     echo -e "${GREEN} 10.${PLAIN} 设置系统启动自动加载"
     echo -e "${GREEN} 11.${PLAIN} 重新安装/更新流量监控脚本"
+    echo -e "${GREEN} 12.${PLAIN} 流量报警设置"
     echo -e "${RED} 99.${PLAIN} 卸载流量监控系统"
     echo -e "${YELLOW}  0.${PLAIN} 退出脚本"
     echo
@@ -686,7 +813,7 @@ main() {
     
     while true; do
         show_menu
-        read -p "请选择 [0-11,99]: " option
+        read -p "请选择 [0-12,99]: " option
         
         case $option in
             1) show_all_status; read -n 1 -s -r -p "按任意键继续..." ;;
@@ -700,6 +827,7 @@ main() {
             9) view_logs ;;
             10) setup_autostart; read -n 1 -s -r -p "按任意键继续..." ;;
             11) install_traffic_monitor; read -n 1 -s -r -p "按任意键继续..." ;;
+            12) setup_traffic_alert; read -n 1 -s -r -p "按任意键继续..." ;;
             99) uninstall_system ;;
             0) 
                 echo -e "${GREEN}感谢使用，再见!${PLAIN}"
