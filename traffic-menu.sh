@@ -49,6 +49,14 @@ install_traffic_monitor() {
     # 创建链接
     ln -sf $MONITOR_SCRIPT /usr/local/bin/traffic-monitor
     
+    # 初始化配置
+    echo -e "${YELLOW}正在初始化配置文件...${PLAIN}"
+    $MONITOR_SCRIPT > /dev/null
+    
+    # 设置监控规则
+    echo -e "${YELLOW}正在设置监控规则...${PLAIN}"
+    $MONITOR_SCRIPT setup > /dev/null
+    
     echo -e "${GREEN}流量监控脚本安装完成!${PLAIN}"
 }
 
@@ -58,10 +66,6 @@ check_installation() {
         echo -e "${YELLOW}未检测到流量监控脚本，准备安装...${PLAIN}"
         install_deps
         install_traffic_monitor
-        
-        # 初始化配置
-        traffic-monitor > /dev/null
-        traffic-monitor setup > /dev/null
         
         # 保存规则
         nft list ruleset > /etc/nftables.conf 2>/dev/null
@@ -200,12 +204,14 @@ add_port_monitor() {
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}端口 $port 的监控配置已成功添加!${PLAIN}"
+        
+        # 保存规则
+        echo -e "${YELLOW}正在保存防火墙规则...${PLAIN}"
+        nft list ruleset > /etc/nftables.conf 2>/dev/null
+        echo -e "${GREEN}规则已保存，系统重启后将自动加载。${PLAIN}"
     else
         echo -e "${RED}添加监控配置失败，请检查错误信息。${PLAIN}"
     fi
-    
-    # 保存规则
-    nft list ruleset > /etc/nftables.conf 2>/dev/null
     
     echo
     echo -e "${CYAN}=============================${PLAIN}"
@@ -229,12 +235,20 @@ modify_port_monitor() {
     
     # 检查端口是否存在
     local found=0
-    while IFS=: read -r config_port limit_gb start_date user_name || [[ -n "$config_port" ]]; do
+    local limit_gb=""
+    local start_date=""
+    local user_name=""
+    
+    while IFS=: read -r config_port config_limit_gb config_start_date config_user_name || [[ -n "$config_port" ]]; do
         # 跳过注释和空行
         [[ $config_port =~ ^#.*$ || -z $config_port ]] && continue
         
         if [ "$config_port" == "$port" ]; then
             found=1
+            limit_gb=$config_limit_gb
+            start_date=$config_start_date
+            user_name=$config_user_name
+            
             echo -e "${GREEN}已找到端口 $port 的配置:${PLAIN}"
             echo -e "${GREEN}限额: ${PLAIN}$limit_gb GB"
             echo -e "${GREEN}开始日期: ${PLAIN}$start_date"
@@ -297,12 +311,14 @@ modify_port_monitor() {
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}端口 $port 的监控配置已成功修改!${PLAIN}"
+        
+        # 保存规则
+        echo -e "${YELLOW}正在保存防火墙规则...${PLAIN}"
+        nft list ruleset > /etc/nftables.conf 2>/dev/null
+        echo -e "${GREEN}规则已保存，系统重启后将自动加载。${PLAIN}"
     else
         echo -e "${RED}修改监控配置失败，请检查错误信息。${PLAIN}"
     fi
-    
-    # 保存规则
-    nft list ruleset > /etc/nftables.conf 2>/dev/null
     
     echo
     echo -e "${CYAN}=============================${PLAIN}"
@@ -341,12 +357,14 @@ delete_port_monitor() {
     
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}端口 $port 的监控配置已成功删除!${PLAIN}"
+        
+        # 保存规则
+        echo -e "${YELLOW}正在保存防火墙规则...${PLAIN}"
+        nft list ruleset > /etc/nftables.conf 2>/dev/null
+        echo -e "${GREEN}规则已保存，系统重启后将自动加载。${PLAIN}"
     else
         echo -e "${RED}删除监控配置失败，请检查端口号是否正确。${PLAIN}"
     fi
-    
-    # 保存规则
-    nft list ruleset > /etc/nftables.conf 2>/dev/null
     
     echo
     echo -e "${CYAN}=============================${PLAIN}"
@@ -545,12 +563,15 @@ setup_autostart() {
     echo -e "${YELLOW}正在配置系统启动自动加载...${PLAIN}"
     
     # 保存nftables规则
+    echo -e "${YELLOW}保存nftables规则...${PLAIN}"
     nft list ruleset > /etc/nftables.conf 2>/dev/null
     
     # 启用nftables服务
+    echo -e "${YELLOW}启用nftables服务...${PLAIN}"
     systemctl enable nftables > /dev/null 2>&1
     
     # 创建自启动服务
+    echo -e "${YELLOW}创建自启动服务...${PLAIN}"
     cat > /etc/systemd/system/traffic-monitor.service << EOF
 [Unit]
 Description=Traffic Monitor Service
@@ -566,6 +587,7 @@ WantedBy=multi-user.target
 EOF
     
     # 启用服务
+    echo -e "${YELLOW}启用traffic-monitor服务...${PLAIN}"
     systemctl daemon-reload
     systemctl enable traffic-monitor.service
     
@@ -636,7 +658,7 @@ uninstall_system() {
 show_menu() {
     clear
     echo -e "${CYAN}=============================${PLAIN}"
-    echo -e "${CYAN}    端口流量监控系统 v1.0    ${PLAIN}"
+    echo -e "${CYAN}    端口流量监控系统 v1.1    ${PLAIN}"
     echo -e "${CYAN}=============================${PLAIN}"
     echo
     echo -e "${GREEN}  1.${PLAIN} 查看所有端口流量状态"
