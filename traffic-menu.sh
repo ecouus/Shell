@@ -640,32 +640,55 @@ while true; do
     # 获取更新
     UPDATES=$(curl -s "https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${LAST_UPDATE_ID}&timeout=60")
     
-    # 检查是否包含结果
-    if [ "$(echo "$UPDATES" | grep -o '"ok":true')" ]; then
-        # 处理每条消息
-        while read -r UPDATE_ID CHAT_ID TEXT; do
-            if [ -n "$UPDATE_ID" ] && [ "$UPDATE_ID" -gt "$LAST_UPDATE_ID" ]; then
-                LAST_UPDATE_ID=$UPDATE_ID
-                
-                # 如果消息不为空
-                if [ -n "$TEXT" ]; then
-                    # 分割命令和参数
-                    COMMAND=$(echo "$TEXT" | cut -d' ' -f1)
-                    ARGS=( $(echo "$TEXT" | cut -d' ' -f2-) )
+    # 提取更新ID，检查是否有新消息
+    UPDATE_IDS=$(echo "$UPDATES" | grep -o '"update_id":[0-9]*' | grep -o '[0-9]*')
+    
+    for id in $UPDATE_IDS; do
+        if [ "$id" -gt "$LAST_UPDATE_ID" ]; then
+            LAST_UPDATE_ID=$id
+            
+            # 提取消息文本和聊天ID
+            MESSAGE_TEXT=$(echo "$UPDATES" | grep -A10 "\"update_id\":$id" | grep -o '"text":"[^"]*"' | sed 's/"text":"//g' | sed 's/"//g' | head -1)
+            CHAT_ID=$(echo "$UPDATES" | grep -A10 "\"update_id\":$id" | grep -o '"chat":{"id":[^,]*' | grep -o '[0-9-]*' | head -1)
+            
+            if [ -n "$MESSAGE_TEXT" ] && [ -n "$CHAT_ID" ]; then
+                # 检查是否是命令（以/开头）
+                if [[ "$MESSAGE_TEXT" == /* ]]; then
+                    # 提取命令和参数
+                    COMMAND=$(echo "$MESSAGE_TEXT" | cut -d' ' -f1)
+                    ARGS=$(echo "$MESSAGE_TEXT" | cut -d' ' -f2-)
                     
-                    # 处理命令
-                    process_command "$CHAT_ID" "$COMMAND" "${ARGS[@]}"
+                    # 直接调用处理函数，根据命令类型
+                    case "$COMMAND" in
+                        "/status")
+                            handle_status "$CHAT_ID" "$ARGS"
+                            ;;
+                        "/add")
+                            handle_add "$CHAT_ID" $ARGS
+                            ;;
+                        "/rm")
+                            handle_rm "$CHAT_ID" "$ARGS"
+                            ;;
+                        "/reset")
+                            handle_reset "$CHAT_ID" "$ARGS"
+                            ;;
+                        "/reset_all")
+                            handle_reset_all "$CHAT_ID"
+                            ;;
+                        "/start"|"/help")
+                            show_help "$CHAT_ID"
+                            ;;
+                        *)
+                            send_message "$CHAT_ID" "未知命令。使用 /help 查看可用命令。"
+                            ;;
+                    esac
                 fi
             fi
-        done < <(echo "$UPDATES" | grep -o '"update_id":[0-9]*' | grep -o '[0-9]*' | while read -r id; do
-            chat_id=$(echo "$UPDATES" | grep -A10 "\"update_id\":$id" | grep -o '"chat":{"id":[^,]*' | grep -o '[0-9-]*' | head -1)
-            text=$(echo "$UPDATES" | grep -A10 "\"update_id\":$id" | grep -o '"text":"[^"]*"' | sed 's/"text":"//g' | sed 's/"//g' | head -1)
-            echo "$id $chat_id $text"
-        done)
-        
-        # 更新offset
-        echo $((LAST_UPDATE_ID + 1)) > "$OFFSET_FILE"
-    fi
+        fi
+    done
+    
+    # 更新offset
+    echo $((LAST_UPDATE_ID + 1)) > "$OFFSET_FILE"
     
     # 间隔
     sleep 2
