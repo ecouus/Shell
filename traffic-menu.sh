@@ -13,8 +13,8 @@ PLAIN='\033[0m'
 SCRIPT_DIR="/root/ecouu"
 MONITOR_SCRIPT="$SCRIPT_DIR/traffic-monitor.sh"
 CONFIG_FILE="$SCRIPT_DIR/config.ini"
+ALERT_CONFIG_FILE="$SCRIPT_DIR/alert_config.ini"  # 添加这一行
 GITHUB_URL="https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/traffic-monitor.sh"
-
 # 检查是否为root用户
 check_root() {
     if [ "$(id -u)" -ne 0 ]; then
