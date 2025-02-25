@@ -226,8 +226,10 @@ check_traffic() {
     local total_bytes=$((bytes_in + bytes_out))
     
     # 转换为GB
-    local limit_bytes=$((limit_gb * 1024 * 1024 * 1024))
     local total_gb=$(echo "scale=2; $total_bytes/1024/1024/1024" | bc)
+    if [[ $total_gb =~ ^\. ]]; then
+        total_gb="0$total_gb"
+    fi
     
     # 计算使用百分比
     local usage_percent=0
