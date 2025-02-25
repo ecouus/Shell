@@ -471,7 +471,7 @@ send_message() {
     local chat_id="$1"
     local text="$2"
     
-    # 尝试直接发送文本，不使用HTML格式
+    # 直接发送纯文本
     curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
         -d chat_id="${chat_id}" \
         -d text="${text}" > /dev/null
@@ -485,15 +485,11 @@ handle_status() {
     if [ -z "$port" ]; then
         # 查询所有端口
         local output=$(${MONITOR_SCRIPT})
-        send_message "$chat_id" "<pre>${output}</pre>"
+        send_message "$chat_id" "${output}"
     else
         # 查询特定端口
         local output=$(${MONITOR_SCRIPT} status $port 2>&1)
-        if [[ "$output" == *"错误"* ]]; then
-            send_message "$chat_id" "❌ ${output}"
-        else
-            send_message "$chat_id" "<pre>${output}</pre>"
-        fi
+        send_message "$chat_id" "${output}"
     fi
 }
 
