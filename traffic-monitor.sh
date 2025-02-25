@@ -226,7 +226,10 @@ check_traffic() {
     local total_bytes=$((bytes_in + bytes_out))
     
     # 转换为GB
+    local limit_bytes=$((limit_gb * 1024 * 1024 * 1024))
     local total_gb=$(echo "scale=2; $total_bytes/1024/1024/1024" | bc)
+    
+    # 确保小数点前有0
     if [[ $total_gb =~ ^\. ]]; then
         total_gb="0$total_gb"
     fi
@@ -241,6 +244,10 @@ check_traffic() {
     local daily_avg_gb="0"
     if [ $days_running -gt 0 ]; then
         daily_avg_gb=$(echo "scale=2; $total_gb/$days_running" | bc)
+        # 确保小数点前有0
+        if [[ $daily_avg_gb =~ ^\. ]]; then
+            daily_avg_gb="0$daily_avg_gb"
+        fi
     fi
     
     # 估计剩余天数
