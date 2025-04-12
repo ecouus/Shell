@@ -235,6 +235,3 @@ check_commands
 
 # 启动脚本
 menu
-
-# 启动脚本
-menu
