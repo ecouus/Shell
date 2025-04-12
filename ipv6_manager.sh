@@ -41,7 +41,7 @@ show_status() {
     if [ "$(cat /proc/sys/net/ipv6/conf/all/disable_ipv6 2>/dev/null)" -eq 1 ] 2>/dev/null; then
         echo -e "当前状态: ${RED}IPv6 已禁用${NC}"
     else
-        echo -e "当前状态: ${GREEN}IPv6 已启用${NC}"
+        echo -e "当前状态: ${GREEN}IPv6 未禁用${NC}"
     fi
     
     # 检查IPv4是否优先
@@ -111,7 +111,7 @@ enable_ipv6() {
     # 应用设置
     sysctl -p >/dev/null 2>&1
     
-    echo -e "${GREEN}IPv6 已启用${NC}"
+    echo -e "${GREEN}IPv6 未禁用${NC}"
 }
 
 # 设置IPv4优先
@@ -151,59 +151,6 @@ disable_ipv4_priority() {
     echo -e "${GREEN}IPv4优先设置已关闭，系统将使用默认优先级（通常IPv6优先）${NC}"
 }
 
-# 显示网络测试
-network_test() {
-    echo -e "${BLUE}========== 网络连接测试 ==========${NC}"
-    
-    echo -e "\n${YELLOW}测试IPv4连接...${NC}"
-    if ping -c 3 -4 www.google.com > /dev/null 2>&1; then
-        echo -e "${GREEN}IPv4连接正常${NC}"
-        
-        # 获取IPv4延迟
-        echo -e "\n${YELLOW}IPv4延迟测试:${NC}"
-        ping -c 3 -4 www.google.com | grep -oP 'time=\K[0-9.]+'
-        
-        # 显示IPv4路由
-        echo -e "\n${YELLOW}IPv4默认路由:${NC}"
-        ip -4 route | grep default
-    else
-        echo -e "${RED}IPv4连接失败${NC}"
-    fi
-    
-    # 如果IPv6已启用，测试IPv6连接
-    if [ "$(cat /proc/sys/net/ipv6/conf/all/disable_ipv6 2>/dev/null)" != "1" ] 2>/dev/null; then
-        echo -e "\n${YELLOW}测试IPv6连接...${NC}"
-        if ping -c 3 -6 ipv6.google.com > /dev/null 2>&1; then
-            echo -e "${GREEN}IPv6连接正常${NC}"
-            
-            # 获取IPv6延迟
-            echo -e "\n${YELLOW}IPv6延迟测试:${NC}"
-            ping -c 3 -6 ipv6.google.com | grep -oP 'time=\K[0-9.]+'
-            
-            # 显示IPv6路由
-            echo -e "\n${YELLOW}IPv6默认路由:${NC}"
-            ip -6 route | grep default
-        else
-            echo -e "${RED}IPv6连接失败${NC}"
-        fi
-    fi
-    
-    # 检查DNS解析
-    echo -e "\n${YELLOW}DNS解析测试:${NC}"
-    if command -v dig &> /dev/null; then
-        echo -e "使用dig测试..."
-        dig +short www.google.com
-    elif command -v nslookup &> /dev/null; then
-        echo -e "使用nslookup测试..."
-        nslookup www.google.com | grep -A2 'Name:'
-    else
-        echo -e "${RED}未安装DNS测试工具 (dig 或 nslookup)${NC}"
-        echo -e "可通过 ${GREEN}apt install dnsutils${NC} 安装"
-    fi
-    
-    echo -e "\n${BLUE}================================${NC}"
-    read -p "按Enter键继续..."
-}
 
 # 主菜单
 menu() {
@@ -214,7 +161,7 @@ menu() {
     echo "2. 一键启用IPv6"
     echo "3. 设置IPv4优先"
     echo "4. 关闭IPv4优先"
-    echo "5. 网络连接测试"
+    echo "--------------  "
     echo "0. 退出脚本"
     
     read -p "请输入选项 [0-5]: " choice
@@ -224,7 +171,6 @@ menu() {
         2) enable_ipv6; sleep 2; menu ;;
         3) set_ipv4_priority; sleep 2; menu ;;
         4) disable_ipv4_priority; sleep 2; menu ;;
-        5) network_test; menu ;;
         0) echo -e "${GREEN}感谢使用，再见！${NC}"; exit 0 ;;
         *) echo -e "${RED}无效选项，请重新选择${NC}"; sleep 2; menu ;;
     esac
