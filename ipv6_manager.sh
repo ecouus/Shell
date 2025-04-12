@@ -68,16 +68,6 @@ show_status() {
         echo -e "\n${YELLOW}提示: 安装curl可获取公网IP地址 (apt install curl)${NC}"
     fi
     
-    echo -e "\n${YELLOW}----- 本地IP地址 -----${NC}"
-    echo -e "${GREEN}IPv4地址:${NC}"
-    ip -4 addr | grep -w inet | awk '{print "  " $2 " (" $NF ")"}'
-    
-    # 如果IPv6未禁用，显示IPv6地址
-    if [ "$(cat /proc/sys/net/ipv6/conf/all/disable_ipv6 2>/dev/null)" != "1" ] 2>/dev/null; then
-        echo -e "\n${GREEN}IPv6地址:${NC}"
-        ip -6 addr | grep -w inet6 | awk '{print "  " $2 " (" $NF ")"}'
-    fi
-    
     echo -e "\n${BLUE}================================${NC}"
 }
 
