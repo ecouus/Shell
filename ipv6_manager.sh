@@ -25,6 +25,12 @@ check_commands() {
             exit 1
         fi
     done
+    
+    # 检查可选命令
+    if ! command -v curl &> /dev/null; then
+        echo -e "${YELLOW}提示: 未安装curl，某些功能将受限。建议安装: apt install curl${NC}"
+        sleep 2
+    fi
 }
 
 # 显示当前状态和IP地址
@@ -45,13 +51,31 @@ show_status() {
         echo -e "优先级设置: ${BLUE}默认设置（通常IPv6优先）${NC}"
     fi
     
-    echo -e "\n${YELLOW}----- IPv4 地址 -----${NC}"
-    ip -4 addr | grep -w inet | awk '{print $2 " (" $NF ")"}'
+    # 检查是否安装了curl
+    if command -v curl &> /dev/null; then
+        echo -e "\n${YELLOW}----- 公网IP地址 -----${NC}"
+        echo -n "IPv4公网地址: "
+        IPv4=$(curl -s -4 -m 5 ifconfig.me 2>/dev/null || curl -s -4 -m 5 api.ipify.org 2>/dev/null || curl -s -4 -m 5 ip.sb 2>/dev/null || echo "获取失败")
+        echo "$IPv4"
+        
+        # 如果IPv6未禁用，尝试获取IPv6公网地址
+        if [ "$(cat /proc/sys/net/ipv6/conf/all/disable_ipv6 2>/dev/null)" != "1" ] 2>/dev/null; then
+            echo -n "IPv6公网地址: "
+            IPv6=$(curl -s -6 -m 5 ifconfig.me 2>/dev/null || curl -s -6 -m 5 api.ipify.org 2>/dev/null || curl -s -6 -m 5 ip.sb 2>/dev/null || echo "获取失败")
+            echo "$IPv6"
+        fi
+    else
+        echo -e "\n${YELLOW}提示: 安装curl可获取公网IP地址 (apt install curl)${NC}"
+    fi
+    
+    echo -e "\n${YELLOW}----- 本地IP地址 -----${NC}"
+    echo -e "${GREEN}IPv4地址:${NC}"
+    ip -4 addr | grep -w inet | awk '{print "  " $2 " (" $NF ")"}'
     
     # 如果IPv6未禁用，显示IPv6地址
     if [ "$(cat /proc/sys/net/ipv6/conf/all/disable_ipv6 2>/dev/null)" != "1" ] 2>/dev/null; then
-        echo -e "\n${YELLOW}----- IPv6 地址 -----${NC}"
-        ip -6 addr | grep -w inet6 | awk '{print $2 " (" $NF ")"}'
+        echo -e "\n${GREEN}IPv6地址:${NC}"
+        ip -6 addr | grep -w inet6 | awk '{print "  " $2 " (" $NF ")"}'
     fi
     
     echo -e "\n${BLUE}================================${NC}"
@@ -142,8 +166,16 @@ network_test() {
     echo -e "${BLUE}========== 网络连接测试 ==========${NC}"
     
     echo -e "\n${YELLOW}测试IPv4连接...${NC}"
-    if ping -c 3 -4 www.baidu.com > /dev/null 2>&1; then
+    if ping -c 3 -4 www.google.com > /dev/null 2>&1; then
         echo -e "${GREEN}IPv4连接正常${NC}"
+        
+        # 获取IPv4延迟
+        echo -e "\n${YELLOW}IPv4延迟测试:${NC}"
+        ping -c 3 -4 www.google.com | grep -oP 'time=\K[0-9.]+'
+        
+        # 显示IPv4路由
+        echo -e "\n${YELLOW}IPv4默认路由:${NC}"
+        ip -4 route | grep default
     else
         echo -e "${RED}IPv4连接失败${NC}"
     fi
@@ -151,11 +183,32 @@ network_test() {
     # 如果IPv6已启用，测试IPv6连接
     if [ "$(cat /proc/sys/net/ipv6/conf/all/disable_ipv6 2>/dev/null)" != "1" ] 2>/dev/null; then
         echo -e "\n${YELLOW}测试IPv6连接...${NC}"
-        if ping -c 3 -6 ipv6.baidu.com > /dev/null 2>&1; then
+        if ping -c 3 -6 ipv6.google.com > /dev/null 2>&1; then
             echo -e "${GREEN}IPv6连接正常${NC}"
+            
+            # 获取IPv6延迟
+            echo -e "\n${YELLOW}IPv6延迟测试:${NC}"
+            ping -c 3 -6 ipv6.google.com | grep -oP 'time=\K[0-9.]+'
+            
+            # 显示IPv6路由
+            echo -e "\n${YELLOW}IPv6默认路由:${NC}"
+            ip -6 route | grep default
         else
             echo -e "${RED}IPv6连接失败${NC}"
         fi
+    fi
+    
+    # 检查DNS解析
+    echo -e "\n${YELLOW}DNS解析测试:${NC}"
+    if command -v dig &> /dev/null; then
+        echo -e "使用dig测试..."
+        dig +short www.google.com
+    elif command -v nslookup &> /dev/null; then
+        echo -e "使用nslookup测试..."
+        nslookup www.google.com | grep -A2 'Name:'
+    else
+        echo -e "${RED}未安装DNS测试工具 (dig 或 nslookup)${NC}"
+        echo -e "可通过 ${GREEN}apt install dnsutils${NC} 安装"
     fi
     
     echo -e "\n${BLUE}================================${NC}"
