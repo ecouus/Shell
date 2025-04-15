@@ -1510,6 +1510,7 @@ while true; do
                 echo "1.Kejilion                 2.IPQuality(xykt)"
                 echo "3.可视化路由查询(sjlleo)    4.极光面板       "
                 echo "5.融合怪                    6.IPV6管理 "  
+                echo "7.地区IP屏蔽                    "  
                 echo "0.返回主菜单   "
                 read -p "请输入你的选择：" choice
                     case $choice in          
@@ -1530,6 +1531,9 @@ while true; do
                             ;; 
                         6)
                             bash <(curl -fsSL https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/ipv6_manager.sh)
+                            ;; 
+                        7)
+                            bash <(curl -fsSL https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/BlockIP/block-ip.sh)
                             ;; 
                         0)  
                             eco
