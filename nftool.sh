@@ -12,17 +12,29 @@ fi
 
 # 保证 NAT 表和链存在
 ensure_nat_table_exists() {
-    if ! nft list table ip nat &>/dev/null; then
-        echo "✅ 创建 NAT 表和链"
-        nft add table ip nat
-        nft add chain ip nat prerouting { type nat hook prerouting priority 0\; }
-        nft add chain ip nat postrouting { type nat hook postrouting priority 100\; }
-    fi
+  if ! nft list table ip nat >/dev/null 2>&1; then
+    echo "✅ 正在创建 NAT 表..."
+    nft add table ip nat
+  fi
+
+  if ! nft list chain ip nat prerouting >/dev/null 2>&1; then
+    echo "✅ 创建 prerouting 链..."
+    nft add chain ip nat prerouting { type nat hook prerouting priority 0\; }
+  fi
+
+  if ! nft list chain ip nat postrouting >/dev/null 2>&1; then
+    echo "✅ 创建 postrouting 链..."
+    nft add chain ip nat postrouting { type nat hook postrouting priority 100\; }
+  fi
 }
+
+
+
 
 # 添加端口转发规则
 add_rule() {
     ensure_nat_table_exists
+    sleep 0.2 
 
     read -p "请输入本地监听端口: " LPORT
     read -p "请输入目标 IP: " DIP
@@ -115,6 +127,7 @@ show_and_delete_rules() {
 
 # 主菜单
 while true; do
+    ensure_nat_table_exists
     echo -e "\n\e[1;36m===== NFT 端口转发管理脚本 =====\e[0m"
     echo -e "\e[1;33m[1]\e[0m 添加转发规则（TCP+UDP）"
     echo -e "\e[1;33m[2]\e[0m 查看并删除现有规则"
