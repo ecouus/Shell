@@ -13,20 +13,16 @@ check_ip_address() {
     local ipv4_address=$(curl -s --max-time 5 ipv4.ip.sb)
     local ipv6_address=$(curl -s --max-time 5 ipv6.ip.sb)
 
-    # 判断IPv4地址是否获取成功
     if [[ -n "$ipv4_address" ]]; then
         ip_address=$ipv4_address
     elif [[ -n "$ipv6_address" ]]; then
-        # 如果IPv4地址未获取到，但IPv6地址获取成功，则使用IPv6地址
         ip_address=[$ipv6_address]
     else
-        # 如果两个地址都没有获取到，可以在这里处理这种情况
         echo "无法获取IP地址"
         ip_address=""
     fi
 }
 
-# 端口检查函数
 check_port() {
     PORT=$1
     if netstat -tuln | grep ":$PORT " | grep -q "LISTEN"; then
@@ -38,116 +34,87 @@ check_port() {
     return 0
 }
 
-# 安装或更新工具
 install_or_update() {
     echo -e "${GREEN}开始安装所需组件...${NC}"
-    
-    # 检查端口
     check_port 80 || { read -p "按回车返回主菜单..."; return 1; }
     check_port 443 || { read -p "按回车返回主菜单..."; return 1; }
 
-    # 安装组件
     apt update && \
     apt install nginx -y && \
     apt install net-tools -y && \
-    apt install certbot python3-certbot-nginx -y
+    apt install certbot -y
 
     systemctl enable nginx
     systemctl start nginx
 
-    if ! crontab -l 2>/dev/null | grep -Fxq "0 9 * * 1 certbot renew -q"; then
-        (crontab -l 2>/dev/null; echo "0 9 * * 1 certbot renew -q") | crontab -
+    if ! crontab -l 2>/dev/null | grep -Fxq "@weekly systemctl stop nginx && certbot renew --standalone --pre-hook 'systemctl stop nginx' --post-hook 'systemctl start nginx'"; then
+        (crontab -l 2>/dev/null; echo "@weekly systemctl stop nginx && certbot renew --standalone --pre-hook 'systemctl stop nginx' --post-hook 'systemctl start nginx'") | crontab -
     fi
 
     echo -e "${GREEN}安装和配置已完成${NC}"
 }
 
-# 仅申请证书功能
 cert_only() {
     clear
     check_ip_address
     echo "本机IP: $ip_address"
     
     read -p "申请证书域名为: " domain
-    
-    # 确保nginx运行
+
+    systemctl stop nginx
+    certbot certonly --standalone -d ${domain} --non-interactive --agree-tos --email admin@${domain} || {
+        echo -e "${RED}证书申请失败${NC}"
+        systemctl start nginx
+        return 1
+    }
     systemctl start nginx
-    
-    # 创建临时的nginx配置
-    cat > "$NGINX_DIR/${domain}" << EOF
-server {
-    listen 80;
-    listen [::]:80;
-    server_name ${domain};
-    root /var/www/html;
-}
-EOF
-    
-    ln -sf "$NGINX_DIR/${domain}" "/etc/nginx/sites-enabled/${domain}"
-    nginx -t && systemctl reload nginx || { echo -e "${RED}Nginx配置错误${NC}"; return 1; }
-    
-    # 申请证书
-    certbot certonly --nginx -d ${domain} --non-interactive --agree-tos --email admin@${domain} || \
-    { echo -e "${RED}证书申请失败${NC}"; return 1; }
-    
-    # 输出证书路径和内容
+
     echo -e "${GREEN}证书申请成功！${NC}"
     echo -e "\n证书路径:"
     echo "私钥: /etc/letsencrypt/live/${domain}/privkey.pem"
     echo "公钥: /etc/letsencrypt/live/${domain}/fullchain.pem"
-    
-    echo -e "\n证书内容:"
+
     echo -e "\n私钥内容:"
     echo "------------------------"
     cat "/etc/letsencrypt/live/${domain}/privkey.pem"
     echo -e "\n公钥内容:"
     echo "------------------------"
     cat "/etc/letsencrypt/live/${domain}/fullchain.pem"
-    
-    # 配置自动续签
-    if ! crontab -l 2>/dev/null | grep -Fxq "0 9 * * 1 certbot renew -q"; then
-        (crontab -l 2>/dev/null; echo "0 9 * * 1 certbot renew -q") | crontab -
-        echo -e "\n${GREEN}已配置自动续签 (每周一上午9点)${NC}"
+
+    if ! crontab -l 2>/dev/null | grep -Fxq "@weekly systemctl stop nginx && certbot renew --standalone --pre-hook 'systemctl stop nginx' --post-hook 'systemctl start nginx'"; then
+        (crontab -l 2>/dev/null; echo "@weekly systemctl stop nginx && certbot renew --standalone --pre-hook 'systemctl stop nginx' --post-hook 'systemctl start nginx'") | crontab -
+        echo -e "\n${GREEN}已配置 standalone 自动续签计划任务${NC}"
     fi
-    
-    # 清理临时配置
-    rm -f "$NGINX_DIR/${domain}"
-    rm -f "/etc/nginx/sites-enabled/${domain}"
-    nginx -t && systemctl reload nginx
 }
 
-# 配置反向代理
 proxy() {
     clear
     check_ip_address
     echo "本机IP: $ip_address"
 
-    read -p "输入域名 (例如a.com):: " domain
+    read -p "输入域名 (例如a.com): " domain
     read -p "输入反代目标 (例如 1.1.1.1:123 或 b.com): " target
 
     mkdir -p "$NGINX_DIR"
     wget -O "$NGINX_DIR/${domain}" "$PROXY_URL" || { echo -e "${RED}下载配置失败${NC}"; return 1; }
 
-    # 智能判断反代目标是否为 IP+端口或域名
     if [[ "$target" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+:[0-9]+$ ]]; then
-        # 如果是 IP:端口，保留原始 proxy_set_header Host $host;
         sed -i "s/example/${domain}/g; s|127.0.0.1:0000|${target}|g" "$NGINX_DIR/${domain}"
     else
-        # 如果是域名，修改 proxy_set_header Host 为目标域名
         sed -i "s/example/${domain}/g; s|127.0.0.1:0000|${target}|g; s|proxy_set_header Host \$host;|proxy_set_header Host ${target};|g" "$NGINX_DIR/${domain}"
     fi
 
     ln -sf "$NGINX_DIR/${domain}" "/etc/nginx/sites-enabled/${domain}"
-
     nginx -t && systemctl reload nginx || { echo -e "${RED}Nginx配置错误${NC}"; return 1; }
 
-    certbot --nginx -d ${domain} --non-interactive --agree-tos --email admin@${domain} --redirect || \
-    { echo -e "${RED}SSL配置失败${NC}"; return 1; }
+    certbot --nginx -d ${domain} --non-interactive --agree-tos --email admin@${domain} --redirect || {
+        echo -e "${RED}SSL配置失败${NC}"
+        return 1
+    }
 
     echo -e "${GREEN}配置完成: https://${domain} -> ${target}${NC}"
 }
 
-# 配置重定向
 redirect() {
     clear
     check_ip_address
@@ -162,18 +129,17 @@ redirect() {
 
     nginx -t && systemctl reload nginx || { echo -e "${RED}Nginx配置错误${NC}"; return 1; }
 
-    certbot --nginx -d ${domain} --non-interactive --agree-tos --email admin@${domain} --redirect || \
-    { echo -e "${RED}SSL配置失败${NC}"; return 1; }
+    certbot --nginx -d ${domain} --non-interactive --agree-tos --email admin@${domain} --redirect || {
+        echo -e "${RED}SSL配置失败${NC}"
+        return 1
+    }
 
     echo -e "${GREEN}配置完成: https://${domain} -> ${url}${NC}"
 }
 
-# 管理配置
 manage() {
     echo "已配置的域名:"
     echo "------------------------"
-    count=0
-    # 获取所有证书信息
     declare -A expiry_dates valid_days
     count=0
     while IFS= read -r line; do
@@ -184,63 +150,95 @@ manage() {
             valid_days[$current_cert]=$(echo "$line" | grep -o 'VALID: [0-9]*' | awk '{print $2}')
         fi
     done < <(certbot certificates 2>/dev/null)
-    
+
     for conf in $NGINX_DIR/*; do
         [ -f "$conf" ] || continue
         count=$((count + 1))
         domain=$(basename "$conf")
-        
-        # 获取配置类型
+
         if grep -q "proxy_pass" "$conf"; then
             target=$(grep "proxy_pass" "$conf" | awk '{print $2}' | tr -d ';')
             config_type="反代至: $target"
         elif grep -q "root" "$conf" && ! grep -q "^[[:space:]]*root[[:space:]]/var/www/html;" "$conf"; then
-            # 如果有root指令且不是默认的/var/www/html路径，则为普通站点
             root_path=$(grep "root" "$conf" | head -n1 | awk '{print $2}' | tr -d ';')
             config_type="普通站点 (根目录: $root_path)"
         elif grep -q "return 301" "$conf" && ! grep -q "\$host\$request_uri" "$conf" && ! grep -q "\$scheme://\$host\$request_uri" "$conf"; then
-            # 只有当return 301存在且不是SSL跳转时才认为是重定向
             target=$(grep "return 301" "$conf" | grep -v "\$host" | awk '{print $3}' | tr -d ';')
             config_type="重定向至: $target"
         else
             config_type="普通站点"
         fi
-        
-        # 获取证书到期时间
+
         if [[ -n "${expiry_dates[$domain]}" ]]; then
             echo "$domain  > $config_type (距离下次续签: ${valid_days[$domain]}天)"
         else
             echo "$domain  > $config_type (无SSL证书)"
         fi
     done
-    
-    # 检查是否有证书但没有配置的域名
-    if [ -d "/etc/letsencrypt/live" ]; then
-        echo -e "\n仅申请证书的域名:"
-        echo "------------------------"
-        for cert_dir in /etc/letsencrypt/live/*; do
-            [ -d "$cert_dir" ] || continue
-            domain=$(basename "$cert_dir")
-            # 跳过已经在nginx配置中的域名
-            [ -f "$NGINX_DIR/$domain" ] && continue
-            if [[ -n "${expiry_dates[$domain]}" ]]; then
-                echo "$domain (距离下次续签: ${valid_days[$domain]}天)"
-            fi
-        done
-    fi
-    
+
+    echo -e "\n仅申请证书的域名:"
+    echo "------------------------"
+    for cert_dir in /etc/letsencrypt/live/*; do
+        [ -d "$cert_dir" ] || continue
+        domain=$(basename "$cert_dir")
+        [ -f "$NGINX_DIR/$domain" ] && continue
+        if [[ -n "${expiry_dates[$domain]}" ]]; then
+            echo "$domain (距离下次续签: ${valid_days[$domain]}天)"
+        fi
+    done
+
+    echo -e "\n${RED}可能续签失败的证书（无 nginx 配置，非 standalone 模式）:${NC}"
+    echo "------------------------"
+    for cert_dir in /etc/letsencrypt/live/*; do
+        [ -d "$cert_dir" ] || continue
+        domain=$(basename "$cert_dir")
+        if [[ ! -f "$NGINX_DIR/$domain" ]] && ! grep -q "authenticator = standalone" "/etc/letsencrypt/renewal/${domain}.conf" 2>/dev/null; then
+            echo "$domain (请检查是否能正常续签)"
+        fi
+    done
+
     [ $count -eq 0 ] && echo "暂无配置"
     echo "------------------------"
     echo "输入要删除的域名(直接回车取消):"
     read domain
     [ -z "$domain" ] && return
-    [ -f "$NGINX_DIR/${domain}" ] || { echo "域名不存在"; return; }
 
-    rm -f "$NGINX_DIR/${domain}"
-    rm -f "/etc/nginx/sites-enabled/${domain}"
-    [ -d "/etc/letsencrypt/live/${domain}" ] && certbot revoke --cert-name ${domain} --delete-after-revoke --non-interactive
-    nginx -t && systemctl reload nginx && echo -e "${GREEN}删除完成${NC}"
+    conf_path="$NGINX_DIR/${domain}"
+
+    # 检查是否存在配置或证书
+    has_conf=false
+    has_cert=false
+    [ -f "$conf_path" ] && has_conf=true
+    [ -d "/etc/letsencrypt/live/${domain}" ] && has_cert=true
+
+    if ! $has_conf && ! $has_cert; then
+        echo -e "${RED}未找到该域名的配置或证书${NC}"
+        return
+    fi
+
+    # 删除 Nginx 配置
+    if $has_conf; then
+        rm -f "$conf_path"
+        rm -f "/etc/nginx/sites-enabled/${domain}"
+        echo -e "${GREEN}已删除 Nginx 配置${NC}"
+    fi
+
+    # 删除证书（可选）
+    if $has_cert; then
+        echo -e "${RED}检测到 SSL 证书，是否一并撤销并删除？(y/n):${NC}"
+        read revoke
+        if [[ "$revoke" == "y" ]]; then
+            certbot revoke --cert-name ${domain} --delete-after-revoke --non-interactive
+            echo -e "${GREEN}已撤销并删除证书${NC}"
+        else
+            echo "已保留 SSL 证书"
+        fi
+    fi
+
+    nginx -t && systemctl reload nginx
+    echo -e "${GREEN}删除完成${NC}"
 }
+
 
 # 主菜单
 while true; do
