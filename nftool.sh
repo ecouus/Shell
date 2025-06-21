@@ -63,14 +63,15 @@ modify_policy() {
 
 # 添加规则
 add_rule() {
-    read -rp "请输入端口号（1~65535）: " PORT
+    read -rp "请输入端口号(1~65535): " PORT
     [[ "$PORT" =~ ^[0-9]+$ ]] && ((PORT >= 1 && PORT <= 65535)) || { echo "❌ 端口无效"; exit 1; }
 
-    echo -e "\n📡 选择协议类型："
+    echo -e "\n📡 选择协议类型(默认3):"
     echo "1) TCP"
     echo "2) UDP"
     echo "3) TCP 和 UDP"
     read -rp "协议选项 [1-3]: " PROTO_OPT
+    PROTO_OPT=${PROTO_OPT:-3}
     case "$PROTO_OPT" in
         1) PROTOS=("tcp") ;;
         2) PROTOS=("udp") ;;
@@ -79,8 +80,8 @@ add_rule() {
     esac
 
     echo -e "\n🚦 选择规则类型："
-    echo "1) accept（放行）"
-    echo "2) drop（拒绝）"
+    echo "1) accept(放行)"
+    echo "2) drop(拒绝)"
     read -rp "规则选项 [1-2]: " ACTION_OPT
     case "$ACTION_OPT" in
         1) ACTION="accept" ;;
@@ -88,26 +89,28 @@ add_rule() {
         *) echo "❌ 无效选择"; exit 1 ;;
     esac
 
-    # 根据规则类型调整提示语
     if [ "$ACTION" == "accept" ]; then
-        echo -e "\n🌐 是否只允许某个 IP 访问该端口？"
-        echo "1) 是"
-        echo "2) 否（所有 IP 都可访问）"
+        echo -e "\n🌐 是否只允许某个 IP 访问该端口？(默认1)"
+        echo "(1) 是   (2) 否（所有 IP 都可访问）"
         read -rp "选项 [1/2]: " IP_LIMIT
+        IP_LIMIT=${IP_LIMIT:-1}
         if [ "$IP_LIMIT" == "1" ]; then
-            read -rp "请输入允许访问的源 IP（如 127.0.0.1）: " SRCIP
+            read -rp "请输入允许访问的源 IP(默认回车为127.0.0.1): " SRCIP
+            SRCIP=${SRCIP:-127.0.0.1}
             [[ "$SRCIP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || { echo "❌ IP 格式不合法"; exit 1; }
             SRC_PART="ip saddr $SRCIP"
         else
             SRC_PART=""
         fi
     else
-        echo -e "\n🌐 是否只拒绝某个 IP 的访问？"
-        echo "1) 是（只拦截特定 IP）"
+        echo -e "\n🌐 是否只拒绝某个 IP 的访问？(默认1)"
+        echo "1) 是(只拦截特定 IP)"
         echo "2) 否（所有 IP 都拒绝）"
         read -rp "选项 [1/2]: " IP_LIMIT
+        IP_LIMIT=${IP_LIMIT:-1}
         if [ "$IP_LIMIT" == "1" ]; then
-            read -rp "请输入要拒绝的源 IP（如 1.2.3.4）: " SRCIP
+            read -rp "请输入要拒绝的源 IP(默认回车为127.0.0.1): " SRCIP
+            SRCIP=${SRCIP:-127.0.0.1}
             [[ "$SRCIP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || { echo "❌ IP 格式不合法"; exit 1; }
             SRC_PART="ip saddr $SRCIP"
         else
@@ -115,7 +118,6 @@ add_rule() {
         fi
     fi
 
-    # 添加规则
     for PROTO in "${PROTOS[@]}"; do
         echo "➕ 添加规则: $SRC_PART $PROTO dport $PORT $ACTION"
         nft add rule inet filter input $SRC_PART $PROTO dport $PORT $ACTION
@@ -182,4 +184,3 @@ while true; do
     nft list ruleset > /etc/nftables.conf
     systemctl restart nftables
 done
-
