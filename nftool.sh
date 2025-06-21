@@ -156,7 +156,7 @@ while true; do
         1) modify_policy ;;
         2) add_rule ;;
         3) list_and_delete_rule ;;
-        4) bash <(curl -fsSL https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/nft_forward.sh)
+        4) bash <(curl -fsSL https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/nft_forward.sh) ;;
         0) echo -e "👋 退出脚本，再见！"; break ;;
         *) echo -e "\033[1;31m❌ 无效选项，请重新输入。\033[0m" ;;
     esac
