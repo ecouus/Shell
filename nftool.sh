@@ -132,7 +132,7 @@ show_and_delete_rules() {
 # 限制端口仅允许本机访问
 limit_port_local_only() {
     ensure_filter_table_exists
-    read -p "请输入要限制的端口号（如 7688）: " PORT
+    read -p "请输入要限制的端口号（如 8080）: " PORT
 
     if ! [[ "$PORT" =~ ^[0-9]+$ ]] || [ "$PORT" -lt 1 ] || [ "$PORT" -gt 65535 ]; then
         echo "❌ 端口号无效"; return
