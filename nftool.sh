@@ -88,7 +88,8 @@ add_rule() {
 
     if [ "$ACTION" == "accept" ]; then
         echo -e "\n🌐 是否只允许某个 IP 访问该端口？(默认1)"
-        echo "(1) 是   (2) 否（所有 IP 都可访问）"
+        echo "1) 是   "
+        echo "2) 否（所有 IP 都可访问）"
         read -rp "选项 [1/2]: " IP_LIMIT
         IP_LIMIT=${IP_LIMIT:-1}
         if [ "$IP_LIMIT" == "1" ]; then
@@ -100,11 +101,11 @@ add_rule() {
             SRC_PART=""
         fi
     else
-        echo -e "\n🌐 是否只拒绝某个 IP 的访问？(默认1)"
+        echo -e "\n🌐 是否只拒绝某个 IP 的访问？(默认2)"
         echo "1) 是(只拦截特定 IP)"
         echo "2) 否（所有 IP 都拒绝）"
         read -rp "选项 [1/2]: " IP_LIMIT
-        IP_LIMIT=${IP_LIMIT:-1}
+        IP_LIMIT=${IP_LIMIT:-2}
         if [ "$IP_LIMIT" == "1" ]; then
             read -rp "请输入要拒绝的源 IP(默认回车为127.0.0.1): " SRCIP
             SRCIP=${SRCIP:-127.0.0.1}
