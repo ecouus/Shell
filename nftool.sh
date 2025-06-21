@@ -53,12 +53,9 @@ modify_policy() {
         exit 1
     fi
 
-    nft delete chain inet filter input
-    nft add chain inet filter input { type filter hook input priority 0\; policy $NEWPOLICY\; }
-    nft add rule inet filter input iif lo accept
-    nft add rule inet filter input ct state established,related accept
-
+    nft chain inet filter input { policy $NEWPOLICY; }
     echo "✅ 默认策略已修改为：$NEWPOLICY"
+
 }
 
 # 添加规则
@@ -127,35 +124,37 @@ add_rule() {
 
 # 查看并删除规则
 list_and_delete_rule() {
-    echo -e "\n📋 当前 inet filter input 链规则列表："
-    RULES=$(nft -a list chain inet filter input | grep ' dport ' || true)
+    while true; do
+        echo -e "\n📋 当前 inet filter input 链规则列表："
+        RULES=$(nft -a list chain inet filter input | grep ' dport ' || true)
 
-    if [ -z "$RULES" ]; then
-        echo "（无规则）"
-        return
-    fi
+        if [ -z "$RULES" ]; then
+            echo "（无规则）"
+            return
+        fi
 
-    INDEX=1
-    declare -A HANDLE_MAP
-    while IFS= read -r line; do
-        HANDLE=$(echo "$line" | grep -oP 'handle \K[0-9]+')
-        DESC=$(echo "$line" | sed 's/ handle.*//' | xargs)
-        HANDLE_MAP[$INDEX]=$HANDLE
-        printf "%-4s %-60s handle %s\n" "$INDEX" "$DESC" "$HANDLE"
-        INDEX=$((INDEX + 1))
-    done <<< "$RULES"
+        INDEX=1
+        declare -A HANDLE_MAP
+        while IFS= read -r line; do
+            HANDLE=$(echo "$line" | grep -oP 'handle \K[0-9]+')
+            DESC=$(echo "$line" | sed 's/ handle.*//' | xargs)
+            HANDLE_MAP[$INDEX]=$HANDLE
+            printf "%-4s %-60s handle %s\n" "$INDEX" "$DESC" "$HANDLE"
+            INDEX=$((INDEX + 1))
+        done <<< "$RULES"
 
-    echo
-    read -rp "请输入要删除的规则编号（留空取消）: " NUM
-    [ -z "$NUM" ] && return
+        echo
+        read -rp "请输入要删除的规则编号（留空返回主菜单）: " NUM
+        [ -z "$NUM" ] && return
 
-    HANDLE=${HANDLE_MAP[$NUM]}
-    if [ -n "$HANDLE" ]; then
-        nft delete rule inet filter input handle "$HANDLE"
-        echo "✅ 已删除规则 handle: $HANDLE"
-    else
-        echo "❌ 编号无效"
-    fi
+        HANDLE=${HANDLE_MAP[$NUM]}
+        if [ -n "$HANDLE" ]; then
+            nft delete rule inet filter input handle "$HANDLE"
+            echo "✅ 已删除规则 handle: $HANDLE"
+        else
+            echo "❌ 编号无效"
+        fi
+    done
 }
 
 # 主菜单
