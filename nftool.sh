@@ -11,7 +11,7 @@ init_nft_structure() {
 
     if ! nft list chain inet filter input &>/dev/null; then
         echo "🧱 创建链：inet filter input"
-        nft add chain inet filter input { type filter hook input priority 0\; policy drop\; }
+        nft add chain inet filter input { type filter hook input priority 0\; policy accept\; }
         nft add rule inet filter input iif lo accept
         nft add rule inet filter input ct state established,related accept
     fi
