@@ -9,17 +9,28 @@ init_nft_structure() {
         nft add table inet filter
     fi
 
-    # 自动获取 SSH 端口（从 sshd_config 读取，默认为22）
-    SSH_PORT=$(grep -Ei '^Port ' /etc/ssh/sshd_config | awk '{print $2}' | head -n1)
-    [[ -z "$SSH_PORT" ]] && SSH_PORT=22
-
     if ! nft list chain inet filter input &>/dev/null; then
         echo "🧱 创建链：inet filter input"
         nft add chain inet filter input { type filter hook input priority 0\; policy accept\; }
         nft add rule inet filter input iif lo accept
         nft add rule inet filter input ct state established,related accept
+        echo "✅ 已初始化 input 链规则"
+    fi
+
+    ensure_ssh_rule
+}
+
+# 每次运行都确保 SSH 端口被放行
+ensure_ssh_rule() {
+    SSH_PORT=$(grep -Ei '^Port ' /etc/ssh/sshd_config | awk '{print $2}' | head -n1)
+    [[ -z "$SSH_PORT" ]] && SSH_PORT=22
+
+    if ! nft list chain inet filter input 2>/dev/null | grep -q "tcp dport $SSH_PORT accept"; then
+        echo "🔓 检测到 SSH 端口（$SSH_PORT）未放行，正在添加规则..."
         nft add rule inet filter input tcp dport "$SSH_PORT" accept
-        echo "🔓 已自动放行 SSH 端口：$SSH_PORT"
+        echo "✅ SSH 端口已放行：$SSH_PORT"
+    else
+        echo "🔐 SSH 端口 $SSH_PORT 已放行，无需重复添加"
     fi
 }
 
