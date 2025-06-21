@@ -53,10 +53,10 @@ modify_policy() {
         exit 1
     fi
 
-    nft chain inet filter input { policy $NEWPOLICY; }
+    nft 'chain inet filter input { policy '"$NEWPOLICY"'; }'
     echo "✅ 默认策略已修改为：$NEWPOLICY"
-
 }
+
 
 # 添加规则
 add_rule() {
