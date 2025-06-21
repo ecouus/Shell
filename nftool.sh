@@ -2,18 +2,24 @@
 
 set -e
 
-# 初始化 nftables 基础结构
+# 初始化 nftables 基础结构，并自动放行 SSH 端口
 init_nft_structure() {
     if ! nft list table inet filter &>/dev/null; then
         echo "🧱 创建表：inet filter"
         nft add table inet filter
     fi
 
+    # 自动获取 SSH 端口（从 sshd_config 读取，默认为22）
+    SSH_PORT=$(grep -Ei '^Port ' /etc/ssh/sshd_config | awk '{print $2}' | head -n1)
+    [[ -z "$SSH_PORT" ]] && SSH_PORT=22
+
     if ! nft list chain inet filter input &>/dev/null; then
         echo "🧱 创建链：inet filter input"
         nft add chain inet filter input { type filter hook input priority 0\; policy accept\; }
         nft add rule inet filter input iif lo accept
         nft add rule inet filter input ct state established,related accept
+        nft add rule inet filter input tcp dport "$SSH_PORT" accept
+        echo "🔓 已自动放行 SSH 端口：$SSH_PORT"
     fi
 }
 
