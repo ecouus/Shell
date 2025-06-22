@@ -106,13 +106,13 @@ fi
 # === 初始化 nftables 表/集合/链 ===
 nft list table inet geo_filter &>/dev/null || nft add table inet geo_filter
 nft list set inet geo_filter cn_ipv4 &>/dev/null || \
-    nft add set inet geo_filter cn_ipv4 { type ipv4_addr; flags interval; auto-merge \; }
+    nft add set inet geo_filter cn_ipv4 { type ipv4_addr; flags interval; auto-merge; }
 if [[ "$USE_IPV6" == "y" ]]; then
     nft list set inet geo_filter cn_ipv6 &>/dev/null || \
-        nft add set inet geo_filter cn_ipv6 { type ipv6_addr; flags interval; auto-merge \; }
+        nft add set inet geo_filter cn_ipv6 { type ipv6_addr; flags interval; auto-merge; }
 fi
 nft list chain inet geo_filter input &>/dev/null || \
-    nft add chain inet geo_filter input { type filter hook input priority 0\; policy accept\; }
+    nft add chain inet geo_filter input { type filter hook input priority 0; policy accept; }
 
 # === 更新 IP 集合 ===
 nft flush set inet geo_filter cn_ipv4
