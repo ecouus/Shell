@@ -60,8 +60,14 @@ modify_policy() {
 
 # 添加规则
 add_rule() {
-    read -rp "请输入端口号(1~65535): " PORT
-    [[ "$PORT" =~ ^[0-9]+$ ]] && ((PORT >= 1 && PORT <= 65535)) || { echo "❌ 端口无效"; exit 1; }
+    read -rp "请输入端口号（多个端口用英文逗号分隔，范围1~65535）: " PORT_STR
+    IFS=',' read -ra PORTS <<< "$PORT_STR"
+    for port in "${PORTS[@]}"; do
+        [[ "$port" =~ ^[0-9]+$ ]] && ((port >= 1 && port <= 65535)) || {
+            echo "❌ 端口无效: $port"
+            return 1
+        }
+    done
 
     echo -e "\n📡 选择协议类型(默认3):"
     echo "1) TCP"
@@ -73,7 +79,7 @@ add_rule() {
         1) PROTOS=("tcp") ;;
         2) PROTOS=("udp") ;;
         3) PROTOS=("tcp" "udp") ;;
-        *) echo "❌ 无效选择"; exit 1 ;;
+        *) echo "❌ 无效选择"; return 1 ;;
     esac
 
     echo -e "\n🚦 选择规则类型："
@@ -83,45 +89,44 @@ add_rule() {
     case "$ACTION_OPT" in
         1) ACTION="accept" ;;
         2) ACTION="drop" ;;
-        *) echo "❌ 无效选择"; exit 1 ;;
+        *) echo "❌ 无效选择"; return 1 ;;
     esac
 
+    SRC_PART=""
     if [ "$ACTION" == "accept" ]; then
-        echo -e "\n🌐 是否只允许某个 IP 访问该端口？(默认1)"
-        echo "1) 是   "
+        echo -e "\n🌐 是否只允许某个 IP 访问？(默认1)"
+        echo "1) 是"
         echo "2) 否（所有 IP 都可访问）"
         read -rp "选项 [1/2]: " IP_LIMIT
         IP_LIMIT=${IP_LIMIT:-1}
         if [ "$IP_LIMIT" == "1" ]; then
-            read -rp "请输入允许访问的源 IP(默认回车为127.0.0.1): " SRCIP
+            read -rp "请输入允许访问的源 IP（默认127.0.0.1）: " SRCIP
             SRCIP=${SRCIP:-127.0.0.1}
-            [[ "$SRCIP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || { echo "❌ IP 格式不合法"; exit 1; }
+            [[ "$SRCIP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || { echo "❌ IP 格式不合法"; return 1; }
             SRC_PART="ip saddr $SRCIP"
-        else
-            SRC_PART=""
         fi
     else
-        echo -e "\n🌐 是否只拒绝某个 IP 的访问？(默认2)"
-        echo "1) 是(只拦截特定 IP)"
+        echo -e "\n🌐 是否只拒绝某个 IP？(默认2)"
+        echo "1) 是（只拦截特定 IP）"
         echo "2) 否（所有 IP 都拒绝）"
         read -rp "选项 [1/2]: " IP_LIMIT
         IP_LIMIT=${IP_LIMIT:-2}
         if [ "$IP_LIMIT" == "1" ]; then
-            read -rp "请输入要拒绝的源 IP(默认回车为127.0.0.1): " SRCIP
+            read -rp "请输入要拒绝的源 IP（默认127.0.0.1）: " SRCIP
             SRCIP=${SRCIP:-127.0.0.1}
-            [[ "$SRCIP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || { echo "❌ IP 格式不合法"; exit 1; }
+            [[ "$SRCIP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || { echo "❌ IP 格式不合法"; return 1; }
             SRC_PART="ip saddr $SRCIP"
-        else
-            SRC_PART=""
         fi
     fi
 
-    for PROTO in "${PROTOS[@]}"; do
-        echo "➕ 添加规则: $SRC_PART $PROTO dport $PORT $ACTION"
-        nft add rule inet filter input $SRC_PART $PROTO dport $PORT $ACTION
+    for port in "${PORTS[@]}"; do
+        port_trimmed=$(echo "$port" | xargs)
+        for PROTO in "${PROTOS[@]}"; do
+            echo "➕ 添加规则: $SRC_PART $PROTO dport $port_trimmed $ACTION"
+            nft add rule inet filter input $SRC_PART $PROTO dport $port_trimmed $ACTION
+        done
     done
 }
-
 
 # 查看并删除规则
 list_and_delete_rule() {
@@ -167,7 +172,7 @@ while true; do
     echo -e "\033[1;33m[2]\033[0m 添加新规则（支持端口、协议、IP限制）"
     echo -e "\033[1;33m[3]\033[0m 查看并删除已有规则"
     echo -e "\033[1;33m[4]\033[0m 进入端口转发管理模块（TCP/UDP 端口转发）"
-    echo -e "\033[1;33m[4]\033[0m 屏蔽国内/海外IP"
+    echo -e "\033[1;33m[5]\033[0m 屏蔽国内/海外IP"
     echo -e "\033[1;33m[0]\033[0m 退出脚本"
     echo "-------------------------------------------"
     read -rp "🎯 请输入选项编号 [0-4]: " CHOICE
