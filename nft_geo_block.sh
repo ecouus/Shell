@@ -3,7 +3,7 @@
 # === 配置变量 ===
 CN_URL="https://raw.githubusercontent.com/gaoyifan/china-operator-ip/ip-lists/china.txt"
 CN_FILE="/tmp/china.txt"
-NFT_CONF="/etc/nftables.geo.conf"
+PORTS=()
 
 echo "📌 请选择要屏蔽的 IP 类型："
 echo "1) 屏蔽中国大陆 IP"
@@ -16,61 +16,51 @@ echo "2) 屏蔽全部端口"
 read -p "输入选项编号: " scope
 
 if [[ "$scope" == "1" ]]; then
-    read -p "请输入要屏蔽的端口号（多个端口用英文逗号分隔）: " PORTS
-    IFS=',' read -ra PORT_ARR <<< "$PORTS"
+    read -p "请输入要屏蔽的端口号（多个端口用英文逗号分隔）: " PORT_STR
+    IFS=',' read -ra PORTS <<< "$PORT_STR"
 fi
 
 # === 下载中国 IP ===
 echo "📥 正在下载中国大陆 IP 列表..."
 curl -sSL "$CN_URL" -o "$CN_FILE"
 if [ ! -s "$CN_FILE" ]; then
-    echo "❌ 无法获取中国 IP 数据，退出。"
+    echo "❌ 下载失败，退出。"
     exit 1
 fi
-echo "✅ 获取成功，共 $(wc -l < "$CN_FILE") 条 IP 段"
 
-# === 写入 nftables 配置文件 ===
-echo "table inet geo_filter {" > "$NFT_CONF"
-echo "    set cn_ipv4 {" >> "$NFT_CONF"
-echo "        type ipv4_addr" >> "$NFT_CONF"
-echo "        flags interval" >> "$NFT_CONF"
-echo "        auto-merge" >> "$NFT_CONF"
-echo "        elements = {" >> "$NFT_CONF"
+# === 创建 geo_filter 表及 cn_ipv4 set（如果不存在） ===
+nft list table inet geo_filter &>/dev/null || nft add table inet geo_filter
+nft list set inet geo_filter cn_ipv4 &>/dev/null || \
+    nft add set inet geo_filter cn_ipv4 { type ipv4_addr; flags interval; auto-merge; }
+
+# === 清空原 cn_ipv4 set 并重新添加 ===
+nft flush set inet geo_filter cn_ipv4
+
 while read -r ip; do
-    echo "            $ip," >> "$NFT_CONF"
+    nft add element inet geo_filter cn_ipv4 { $ip }
 done < "$CN_FILE"
-# 删除最后一行的逗号
-sed -i '$ s/,$//' "$NFT_CONF"
-echo "        }" >> "$NFT_CONF"
-echo "    }" >> "$NFT_CONF"
 
-# === 写入规则 chain ===
-echo "" >> "$NFT_CONF"
-echo "    chain input {" >> "$NFT_CONF"
-echo "        type filter hook input priority 0; policy accept;" >> "$NFT_CONF"
+# === 创建 input 链（如果不存在） ===
+nft list chain inet geo_filter input &>/dev/null || \
+    nft add chain inet geo_filter input { type filter hook input priority 0\; }
 
+# === 添加规则 ===
+for port in "${PORTS[@]}"; do
+    port_trimmed=$(echo "$port" | xargs)
+    if [[ "$ip_type" == "1" ]]; then
+        nft add rule inet geo_filter input ip saddr @cn_ipv4 tcp dport "$port_trimmed" drop
+    else
+        nft add rule inet geo_filter input ip saddr != @cn_ipv4 tcp dport "$port_trimmed" drop
+    fi
+done
+
+# === 全端口屏蔽 ===
 if [[ "$scope" == "2" ]]; then
     if [[ "$ip_type" == "1" ]]; then
-        echo "        ip saddr @cn_ipv4 drop" >> "$NFT_CONF"
+        nft add rule inet geo_filter input ip saddr @cn_ipv4 drop
     else
-        echo "        ip saddr != @cn_ipv4 drop" >> "$NFT_CONF"
+        nft add rule inet geo_filter input ip saddr != @cn_ipv4 drop
     fi
-else
-    for port in "${PORT_ARR[@]}"; do
-        port_trimmed=$(echo "$port" | xargs)
-        if [[ "$ip_type" == "1" ]]; then
-            echo "        ip saddr @cn_ipv4 tcp dport $port_trimmed drop" >> "$NFT_CONF"
-        else
-            echo "        ip saddr != @cn_ipv4 tcp dport $port_trimmed drop" >> "$NFT_CONF"
-        fi
-    done
 fi
 
-echo "    }" >> "$NFT_CONF"
-echo "}" >> "$NFT_CONF"
-
-# === 应用规则 ===
-echo "🚀 应用 nftables 规则..."
-nft flush ruleset
-nft -f "$NFT_CONF"
-echo "✅ 已成功写入并应用规则到 nftables。"
+echo "✅ 已完成 geo_filter 规则添加，不影响其他表。"
