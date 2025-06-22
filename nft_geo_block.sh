@@ -29,50 +29,45 @@ if [ ! -s "$CN_FILE" ]; then
 fi
 echo "✅ 获取成功，共 $(wc -l < "$CN_FILE") 条 IP 段"
 
-# === 构建 IP SET ===
-CN_SET="        elements = {\n"
+# === 写入 nftables 配置文件 ===
+echo "table inet geo_filter {" > "$NFT_CONF"
+echo "    set cn_ipv4 {" >> "$NFT_CONF"
+echo "        type ipv4_addr" >> "$NFT_CONF"
+echo "        flags interval" >> "$NFT_CONF"
+echo "        auto-merge" >> "$NFT_CONF"
+echo "        elements = {" >> "$NFT_CONF"
 while read -r ip; do
-    CN_SET+="            $ip,\n"
+    echo "            $ip," >> "$NFT_CONF"
 done < "$CN_FILE"
-CN_SET=${CN_SET%,\\n}
-CN_SET+="\n        }"
+# 删除最后一行的逗号
+sed -i '$ s/,$//' "$NFT_CONF"
+echo "        }" >> "$NFT_CONF"
+echo "    }" >> "$NFT_CONF"
 
-# === 构建 RULES ===
-RULES=""
+# === 写入规则 chain ===
+echo "" >> "$NFT_CONF"
+echo "    chain input {" >> "$NFT_CONF"
+echo "        type filter hook input priority 0; policy accept;" >> "$NFT_CONF"
+
 if [[ "$scope" == "2" ]]; then
     if [[ "$ip_type" == "1" ]]; then
-        RULES="ip saddr @cn_ipv4 drop"
+        echo "        ip saddr @cn_ipv4 drop" >> "$NFT_CONF"
     else
-        RULES="ip saddr != @cn_ipv4 drop"
+        echo "        ip saddr != @cn_ipv4 drop" >> "$NFT_CONF"
     fi
 else
     for port in "${PORT_ARR[@]}"; do
         port_trimmed=$(echo "$port" | xargs)
         if [[ "$ip_type" == "1" ]]; then
-            RULES+="ip saddr @cn_ipv4 tcp dport $port_trimmed drop\n        "
+            echo "        ip saddr @cn_ipv4 tcp dport $port_trimmed drop" >> "$NFT_CONF"
         else
-            RULES+="ip saddr != @cn_ipv4 tcp dport $port_trimmed drop\n        "
+            echo "        ip saddr != @cn_ipv4 tcp dport $port_trimmed drop" >> "$NFT_CONF"
         fi
     done
 fi
 
-# === 写入 nftables 配置文件 ===
-cat > "$NFT_CONF" <<EOF
-table inet geo_filter {
-    set cn_ipv4 {
-        type ipv4_addr
-        flags interval
-        auto-merge
-$CN_SET
-    }
-
-    chain input {
-        type filter hook input priority 0; policy accept;
-
-        $RULES
-    }
-}
-EOF
+echo "    }" >> "$NFT_CONF"
+echo "}" >> "$NFT_CONF"
 
 # === 应用规则 ===
 echo "🚀 应用 nftables 规则..."
