@@ -133,20 +133,28 @@ fi
 if [[ "$scope" == "2" ]]; then
     if [[ "$ip_type" == "1" ]]; then
         nft add rule inet geo_filter input ip saddr @cn_ipv4 drop
-        [[ "$USE_IPV6" == "y" ]] && nft add rule inet geo_filter input ip6 saddr @cn_ipv6 drop
+        if [[ "$USE_IPV6" == "y" ]]; then
+            nft add rule inet geo_filter input ip6 saddr @cn_ipv6 drop
+        fi
     else
         nft add rule inet geo_filter input ip saddr != @cn_ipv4 drop
-        [[ "$USE_IPV6" == "y" ]] && nft add rule inet geo_filter input ip6 saddr != @cn_ipv6 drop
+        if [[ "$USE_IPV6" == "y" ]]; then
+            nft add rule inet geo_filter input ip6 saddr != @cn_ipv6 drop
+        fi
     fi
 else
     for port in "${PORT_ARR[@]}"; do
         port_trimmed=$(echo "$port" | xargs)
         if [[ "$ip_type" == "1" ]]; then
             nft add rule inet geo_filter input ip saddr @cn_ipv4 tcp dport "$port_trimmed" drop
-            [[ "$USE_IPV6" == "y" ]] && nft add rule inet geo_filter input ip6 saddr @cn_ipv6 tcp dport "$port_trimmed" drop
+            if [[ "$USE_IPV6" == "y" ]]; then
+                nft add rule inet geo_filter input ip6 saddr @cn_ipv6 tcp dport "$port_trimmed" drop
+            fi
         else
             nft add rule inet geo_filter input ip saddr != @cn_ipv4 tcp dport "$port_trimmed" drop
-            [[ "$USE_IPV6" == "y" ]] && nft add rule inet geo_filter input ip6 saddr != @cn_ipv6 tcp dport "$port_trimmed" drop
+            if [[ "$USE_IPV6" == "y" ]]; then
+                nft add rule inet geo_filter input ip6 saddr != @cn_ipv6 tcp dport "$port_trimmed" drop
+            fi
         fi
     done
 fi
