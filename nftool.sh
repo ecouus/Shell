@@ -167,6 +167,7 @@ while true; do
     echo -e "\033[1;33m[2]\033[0m 添加新规则（支持端口、协议、IP限制）"
     echo -e "\033[1;33m[3]\033[0m 查看并删除已有规则"
     echo -e "\033[1;33m[4]\033[0m 进入端口转发管理模块（TCP/UDP 端口转发）"
+    echo -e "\033[1;33m[4]\033[0m 屏蔽国内/海外IP"
     echo -e "\033[1;33m[0]\033[0m 退出脚本"
     echo "-------------------------------------------"
     read -rp "🎯 请输入选项编号 [0-4]: " CHOICE
@@ -176,6 +177,7 @@ while true; do
         2) add_rule ;;
         3) list_and_delete_rule ;;
         4) bash <(curl -fsSL https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/nft_forward.sh) ;;
+        5) bash <(curl -fsSL https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/nft_geo_block.sh) ;;
         0) echo -e "👋 退出脚本，再见！"; break ;;
         *) echo -e "\033[1;31m❌ 无效选项，请重新输入。\033[0m" ;;
     esac
