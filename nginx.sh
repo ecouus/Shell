@@ -25,14 +25,14 @@ check_ip_address() {
 
 check_port() {
     PORT=$1
-    if netstat -tuln | grep ":$PORT " | grep -q "LISTEN"; then
+    if ss -tuln | grep -q ":$PORT "; then
         echo -e "${RED}错误: 端口 $PORT 已被占用 (LISTEN)${NC}"
-        echo "占用详情:"
-        netstat -tulnp | grep ":$PORT "
+        ss -tulnp | grep ":$PORT "
         return 1
     fi
     return 0
 }
+
 
 install_or_update() {
     echo -e "${GREEN}开始安装所需组件...${NC}"
@@ -240,6 +240,11 @@ manage() {
 }
 
 
+
+cd_nginx() {
+    cd /etc/nginx/sites-available
+}
+
 # 主菜单
 while true; do
     clear
@@ -258,6 +263,7 @@ while true; do
         3) redirect ;;
         6) cert_only ;;
         9) manage ;;
+        10) cd_nginx ;;
         0) exit ;;
         *) echo -e "${RED}无效选项${NC}" ;;
     esac
