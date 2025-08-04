@@ -241,10 +241,6 @@ manage() {
 
 
 
-cd_nginx() {
-    cd /etc/nginx/sites-available
-}
-
 # 主菜单
 while true; do
     clear
@@ -263,7 +259,6 @@ while true; do
         3) redirect ;;
         6) cert_only ;;
         9) manage ;;
-        10) cd_nginx ;;
         0) exit ;;
         *) echo -e "${RED}无效选项${NC}" ;;
     esac
