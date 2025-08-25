@@ -1554,11 +1554,11 @@ while true; do
                 ;;
             3)                  
                 clear
-                curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/nginx.sh && sudo chmod +x nginx.sh && sudo ./nginx.sh
+                bash <(curl -fsSL https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/nginx.sh)
                 ;;
             4)                  
                 clear
-                curl -sS -O https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/system_manager.sh && sudo chmod +x system_manager.sh && sudo ./system_manager.sh
+                bash <(curl -fsSL https://raw.githubusercontent.com/ecouus/Shell/refs/heads/main/system_manager.sh)
                 ;;
             0)                  
                 clear
